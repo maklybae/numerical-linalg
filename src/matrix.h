@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace linalg {
+namespace linalg::types {
 
 template <typename T>
 struct IsComplex : std::false_type {};
@@ -21,8 +21,11 @@ constexpr bool kIsComplexV = IsComplex<T>::value;
 
 template <typename T>
 concept FloatingOrComplexType = std::is_floating_point_v<T> || kIsComplexV<T>;
+}  // namespace linalg::types
 
-template <FloatingOrComplexType Scalar>
+namespace linalg {
+
+template <types::FloatingOrComplexType Scalar>
 class Matrix {
  private:
   using Container = std::vector<Scalar>;
