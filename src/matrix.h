@@ -1,6 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <cassert>
 #include <complex>
 #include <concepts>
 #include <type_traits>
@@ -27,7 +28,7 @@ class Matrix {
   using Container = std::vector<Scalar>;
 
  public:
-  using SizeT = std::size_t;
+  using SizeT = Container::size_type;
 
   Matrix() = default;
 
@@ -47,10 +48,26 @@ class Matrix {
     std::swap(rows_, other.rows_);
     std::swap(cols_, other.cols_);
     std::swap(data_, other.data_);
+
+    assert(other.rows_ == 0 && "Rows of moved matrix should be equal 0");
+    assert(other.cols_ == 0 && "Cols of moved matrix should be equal 0");
+    assert(other.data_.empty() && "Data of moved matrix should be equal 0");
     return *this;
   }
 
   ~Matrix() = default;
+
+  SizeT Rows() const {
+    return rows_;
+  }
+
+  SizeT Cols() const {
+    return cols_;
+  }
+
+  bool Empty() const {
+    return data_.empty();
+  }
 
  private:
   SizeT rows_{};
