@@ -60,3 +60,6 @@ CMakeUserPresets.json
 
 # osx
 .DS_Store
+
+# platform dependence build
+build
