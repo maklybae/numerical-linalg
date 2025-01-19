@@ -4,6 +4,8 @@
 
 #include <cmath>
 #include <complex>
+#include <concepts>
+#include <iterator>
 #include <limits>
 
 namespace {
@@ -264,9 +266,33 @@ concept Container = requires(ContainerType a, const ContainerType b) {
   { a.empty() } -> std::same_as<bool>;
 };
 
+template <typename ContainerType>
+concept ReversibleContainer = Container<ContainerType> && requires(ContainerType a) {
+  requires std::same_as<typename ContainerType::reverse_iterator,
+                        std::reverse_iterator<typename ContainerType::iterator>>;
+  requires std::same_as<typename ContainerType::const_reverse_iterator,
+                        std::reverse_iterator<typename ContainerType::const_iterator>>;
+  { a.rbegin() } -> std::same_as<typename ContainerType::reverse_iterator>;
+  { a.rend() } -> std::same_as<typename ContainerType::reverse_iterator>;
+  { a.crbegin() } -> std::same_as<typename ContainerType::const_reverse_iterator>;
+  { a.crend() } -> std::same_as<typename ContainerType::const_reverse_iterator>;
+};
+
+template <typename ContainerType>
+concept ContiguousContainer = Container<ContainerType> && requires(ContainerType a) {
+  requires std::contiguous_iterator<typename ContainerType::iterator>;
+  requires std::contiguous_iterator<typename ContainerType::const_iterator>;
+};
+
 TEST(MatrixStaticAsserts, ContainerConcepts) {
   static_assert(Container<Matrix<double>>);
   static_assert(Container<Matrix<std::complex<double>>>);
+
+  static_assert(ReversibleContainer<Matrix<double>>);
+  static_assert(ReversibleContainer<Matrix<std::complex<double>>>);
+
+  static_assert(ContiguousContainer<Matrix<double>>);
+  static_assert(ContiguousContainer<Matrix<std::complex<double>>>);
 }
 
 }  // namespace
