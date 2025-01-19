@@ -172,6 +172,120 @@ class Matrix {
   friend bool operator==(const Matrix& lhs, const Matrix& rhs) = default;
   friend bool operator!=(const Matrix& lhs, const Matrix& rhs) = default;
 
+  // Functionals.
+  // TODO: Specify Op types ?
+
+  template <typename UnaryOp>
+  Matrix& Apply(UnaryOp op) {
+    assert(!data_.empty() && "Matrix data should not be empty");
+
+    std::transform(data_.cbegin(), data_.cend(), data_.begin(), op);
+    return *this;
+  }
+
+  template <typename BinaryOp>
+  Matrix& Apply(const Matrix& rhs, BinaryOp op) {
+    assert(rows_ == rhs.rows_ && "Matrix rows should be equal");
+    assert(cols_ == rhs.cols_ && "Matrix cols should be equal");
+    assert(!data_.empty() && "Matrix data should not be empty");
+
+    std::transform(data_.cbegin(), data_.cend(), rhs.data_.cbegin(), data_.begin(), op);
+    return *this;
+  }
+
+  template <typename UnaryOp>
+  Matrix& ApplyDiagonal(UnaryOp op) {
+    assert(rows_ == cols_ && "Matrix should be square");
+    assert(!data_.empty() && "Matrix data should not be empty");
+
+    for (size_type i = 0; i < rows_; ++i) {
+      *this(i, i) = op(*this(i, i));
+    }
+    return *this;
+  }
+
+  // Arithmetic operators.
+
+  // TODO: Not in-place operators should not be friend functions ?
+
+  // Matrix <op> Matrix
+
+  // TODO: std::plus<>(),... take elements by reference, but Scalar is better to be passed by value ?
+  Matrix& operator+=(const Matrix& rhs) {
+    return Apply(rhs, std::plus<>{});
+  }
+
+  Matrix& operator-=(const Matrix& rhs) {
+    return Apply(rhs, std::minus<>{});
+  }
+
+  Matrix& operator-() {
+    return Apply(std::negate<>{});
+  }
+
+  friend Matrix operator+(Matrix lhs, const Matrix& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  friend Matrix operator-(Matrix lhs, const Matrix& rhs) {
+    lhs -= rhs;
+    return lhs;
+  }
+
+  // Scalar <op> Matrix or vice versa
+
+  Matrix& operator+=(Scalar scalar) {
+    return ApplyDiagonal([scalar](Scalar value) { return value + scalar; });
+  }
+
+  Matrix& operator-=(Scalar scalar) {
+    return ApplyDiagonal([scalar](Scalar value) { return value - scalar; });
+  }
+
+  Matrix& operator*=(Scalar scalar) {
+    return Apply([scalar](Scalar value) { return value * scalar; });
+  }
+
+  Matrix& operator/=(Scalar scalar) {
+    return Apply([scalar](Scalar value) { return value / scalar; });
+  }
+
+  friend Matrix operator+(Matrix lhs, Scalar scalar) {
+    lhs += scalar;
+    return lhs;
+  }
+
+  friend Matrix operator+(Scalar scalar, Matrix rhs) {
+    rhs += scalar;
+    return rhs;
+  }
+
+  friend Matrix operator-(Matrix lhs, Scalar scalar) {
+    lhs -= scalar;
+    return lhs;
+  }
+
+  friend Matrix operator-(Scalar scalar, Matrix rhs) {
+    rhs -= scalar;
+    return rhs;
+  }
+
+  friend Matrix operator*(Matrix lhs, Scalar scalar) {
+    lhs *= scalar;
+    return lhs;
+  }
+
+  friend Matrix operator*(Scalar scalar, Matrix rhs) {
+    rhs *= scalar;
+    return rhs;
+  }
+
+  friend Matrix operator/(Matrix lhs, Scalar scalar) {
+    lhs /= scalar;
+    return lhs;
+  }
+
   // Static creation methods.
 
   static Matrix Identity(size_type size) {
