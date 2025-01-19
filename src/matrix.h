@@ -23,17 +23,26 @@ constexpr bool kIsComplexV = IsComplex<T>::value;
 
 template <typename T>
 concept FloatingOrComplexType = std::is_floating_point_v<T> || kIsComplexV<T>;
+
 }  // namespace linalg::types
 
 namespace linalg {
-
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
- private:
-  using Container = std::vector<Scalar>;
-
  public:
-  using SizeT = Container::size_type;
+  using StorageType = std::vector<Scalar>;
+
+  // NOLINTBEGIN(readability-identifier-naming)
+  using value_type             = Scalar;
+  using reference              = Scalar&;
+  using const_reference        = const Scalar&;
+  using iterator               = StorageType::iterator;
+  using const_iterator         = StorageType::const_iterator;
+  using reverse_iterator       = StorageType::reverse_iterator;
+  using const_reverse_iterator = StorageType::const_reverse_iterator;
+  using difference_type        = StorageType::difference_type;
+  using size_type              = StorageType::size_type;
+  // NOLINTEND(readability-identifier-naming)
 
   Matrix() = default;
 
@@ -45,7 +54,7 @@ class Matrix {
       , cols_{std::exchange(other.cols_, 0)}
       , data_{std::exchange(other.data_, {})} {}
 
-  Matrix(SizeT rows, SizeT cols) : rows_{rows}, cols_{cols}, data_(rows * cols) {}
+  Matrix(size_type rows, size_type cols) : rows_{rows}, cols_{cols}, data_(rows * cols) {}
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
     rows_ = list.size();
@@ -73,61 +82,127 @@ class Matrix {
     return *this;
   }
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  void swap(Matrix& other) {
+    std::swap(rows_, other.rows_);
+    std::swap(cols_, other.cols_);
+    std::swap(data_, other.data_);
+  }
+
   ~Matrix() = default;
 
-  SizeT Rows() const {
+  // Size and data access methods.
+
+  size_type Rows() const {
     return rows_;
   }
 
-  SizeT Cols() const {
+  size_type Cols() const {
     return cols_;
   }
 
-  bool Empty() const {
+  // NOLINTBEGIN(readability-identifier-naming)
+  size_type size() const {
+    return data_.size();
+  }
+  size_type max_size() const {
+    return data_.max_size();
+  }
+  bool empty() const {
     return data_.empty();
   }
+  // NOLINTEND(readability-identifier-naming)
 
-  Scalar& operator()(SizeT row, SizeT col) {
+  Scalar& operator()(size_type row, size_type col) {
     assert(row < rows_ && "Row index out of bounds");
     assert(col < cols_ && "Col index out of bounds");
     return data_[row * cols_ + col];
   }
 
-  Scalar operator()(SizeT row, SizeT col) const {
+  Scalar operator()(size_type row, size_type col) const {
     assert(row < rows_ && "Row index out of bounds");
     assert(col < cols_ && "Col index out of bounds");
     return data_[row * cols_ + col];
   }
 
-  static Matrix Identity(SizeT size) {
+  // Iterators.
+
+  // NOLINTBEGIN(readability-identifier-naming)
+  iterator begin() {
+    return data_.begin();
+  }
+  const_iterator begin() const {
+    return data_.begin();
+  }
+  const_iterator cbegin() const {
+    return data_.cbegin();
+  }
+  reverse_iterator rbegin() {
+    return data_.rbegin();
+  }
+  const_reverse_iterator rbegin() const {
+    return data_.rbegin();
+  }
+  const_reverse_iterator crbegin() const {
+    return data_.crbegin();
+  }
+
+  iterator end() {
+    return data_.end();
+  }
+  const_iterator end() const {
+    return data_.end();
+  }
+  const_iterator cend() const {
+    return data_.cend();
+  }
+  reverse_iterator rend() {
+    return data_.rend();
+  }
+  const_reverse_iterator rend() const {
+    return data_.rend();
+  }
+  const_reverse_iterator crend() const {
+    return data_.crend();
+  }
+  // NOLINTEND(readability-identifier-naming)
+
+  // Comparison operators.
+
+  friend bool operator==(const Matrix& lhs, const Matrix& rhs) = default;
+  friend bool operator!=(const Matrix& lhs, const Matrix& rhs) = default;
+
+  // Static creation methods.
+
+  static Matrix Identity(size_type size) {
     Matrix identity(size, size);
-    for (SizeT i = 0; i < size; ++i) {
+    for (size_type i = 0; i < size; ++i) {
       identity(i, i) = 1;
     }
     return identity;
   }
 
-  static Matrix Zero(SizeT rows, SizeT cols) {
+  static Matrix Zero(size_type rows, size_type cols) {
     return Matrix(rows, cols);
   }
 
-  static Matrix Unit(SizeT rows, SizeT cols, SizeT unit_row, SizeT unit_col) {
+  static Matrix Unit(size_type rows, size_type cols, size_type unit_row, size_type unit_col) {
     Matrix unit(rows, cols);
     unit(unit_row, unit_col) = 1;
     return unit;
   }
 
-  static Matrix Diagonal(SizeT size, Scalar value) {
+  static Matrix Diagonal(size_type size, Scalar value) {
     Matrix diagonal(size, size);
-    for (SizeT i = 0; i < size; ++i) {
+    for (size_type i = 0; i < size; ++i) {
       diagonal(i, i) = value;
     }
     return diagonal;
   }
 
-  static Matrix Diagonal(SizeT size, std::initializer_list<Scalar> list) {
+  static Matrix Diagonal(size_type size, std::initializer_list<Scalar> list) {
     Matrix diagonal(size, size);
-    SizeT i{0};
+    size_type i{0};
     for (auto value : list) {
       diagonal(i, i) = value;
       ++i;
@@ -142,19 +217,19 @@ class Matrix {
     auto ssize{std::distance(first, last)};
 
     assert(ssize >= 0 && "Iterator range should be non-negative");
-    SizeT size{static_cast<SizeT>(ssize)};
+    size_type size{static_cast<size_type>(ssize)};
 
     Matrix diagonal(size, size);
-    for (SizeT i = 0; first != last; ++first, ++i) {
+    for (size_type i = 0; first != last; ++first, ++i) {
       diagonal(i, i) = *first;
     }
     return diagonal;
   }
 
  private:
-  SizeT rows_{};
-  SizeT cols_{};
-  Container data_{};
+  size_type rows_{};
+  size_type cols_{};
+  StorageType data_{};
 };
 }  // namespace linalg
 
