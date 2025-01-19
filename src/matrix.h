@@ -5,6 +5,7 @@
 #include <complex>
 #include <concepts>
 #include <initializer_list>
+#include <iterator>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -92,10 +93,62 @@ class Matrix {
     return data_[row * cols_ + col];
   }
 
-  const Scalar& operator()(SizeT row, SizeT col) const {
+  Scalar operator()(SizeT row, SizeT col) const {
     assert(row < rows_ && "Row index out of bounds");
     assert(col < cols_ && "Col index out of bounds");
     return data_[row * cols_ + col];
+  }
+
+  static Matrix Identity(SizeT size) {
+    Matrix identity(size, size);
+    for (SizeT i = 0; i < size; ++i) {
+      identity(i, i) = 1;
+    }
+    return identity;
+  }
+
+  static Matrix Zero(SizeT rows, SizeT cols) {
+    return Matrix(rows, cols);
+  }
+
+  static Matrix Unit(SizeT rows, SizeT cols, SizeT unit_row, SizeT unit_col) {
+    Matrix unit(rows, cols);
+    unit(unit_row, unit_col) = 1;
+    return unit;
+  }
+
+  static Matrix Diagonal(SizeT size, Scalar value) {
+    Matrix diagonal(size, size);
+    for (SizeT i = 0; i < size; ++i) {
+      diagonal(i, i) = value;
+    }
+    return diagonal;
+  }
+
+  static Matrix Diagonal(SizeT size, std::initializer_list<Scalar> list) {
+    Matrix diagonal(size, size);
+    SizeT i{0};
+    for (auto value : list) {
+      diagonal(i, i) = value;
+      ++i;
+    }
+    return diagonal;
+  }
+
+  template <std::input_iterator InputIterator>
+  static Matrix Diagonal(InputIterator first, InputIterator last) {
+    static_assert(std::is_same_v<typename std::iterator_traits<InputIterator>::value_type, Scalar>,
+                  "Iterator value type should be the same as matrix scalar type");
+    auto ssize{std::distance(first, last)};
+
+    assert(ssize >= 0 && "Iterator range should be non-negative");
+    SizeT size{static_cast<SizeT>(ssize)};
+
+    Matrix diagonal(size, size);
+    for (SizeT i = 0; first != last; ++first, ++i) {
+      diagonal(i, i) = *first;
+    }
+    return diagonal;
   }
 
  private:
