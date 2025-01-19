@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+#include <limits>
+
 namespace {
 
 using linalg::Matrix;
@@ -137,6 +140,99 @@ TEST(MatrixAssignment, MoveAssignment) {
   EXPECT_TRUE(matrix.Rows() == 0);
   EXPECT_TRUE(matrix.Cols() == 0);
   EXPECT_TRUE(matrix.Empty());
+}
+
+TEST(MatrixStaticCreate, Identity) {
+  Matrix<double> identity = Matrix<double>::Identity(3);
+  EXPECT_EQ(identity.Rows(), 3);
+  EXPECT_EQ(identity.Cols(), 3);
+  EXPECT_FALSE(identity.Empty());
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == j) {
+        EXPECT_TRUE(identity(i, j) == 1.0);
+      } else {
+        EXPECT_TRUE(identity(i, j) == 0.0);
+      }
+    }
+  }
+}
+
+TEST(MatrixStaticCreate, Zero) {
+  Matrix<double> zero = Matrix<double>::Zero(2, 3);
+  EXPECT_EQ(zero.Rows(), 2);
+  EXPECT_EQ(zero.Cols(), 3);
+  EXPECT_FALSE(zero.Empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_TRUE(zero(i, j) == 0.0);
+    }
+  }
+}
+
+TEST(MatrixStaticCreate, Unit) {
+  Matrix<double> unit = Matrix<double>::Unit(2, 3, 1, 2);
+  EXPECT_EQ(unit.Rows(), 2);
+  EXPECT_EQ(unit.Cols(), 3);
+  EXPECT_FALSE(unit.Empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == 1 && j == 2) {
+        EXPECT_TRUE(unit(i, j) == 1.0);
+      } else {
+        EXPECT_TRUE(unit(i, j) == 0.0);
+      }
+    }
+  }
+}
+
+TEST(MatrixStaticCreate, DiagonalScalar) {
+  Matrix<double> diagonal = Matrix<double>::Diagonal(3, 2.0);
+  EXPECT_EQ(diagonal.Rows(), 3);
+  EXPECT_EQ(diagonal.Cols(), 3);
+  EXPECT_FALSE(diagonal.Empty());
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == j) {
+        EXPECT_TRUE(diagonal(i, j) == 2.0);
+      } else {
+        EXPECT_TRUE(diagonal(i, j) == 0.0);
+      }
+    }
+  }
+}
+
+TEST(MatrixStaticCreate, DiagonalList) {
+  Matrix<double> diagonal = Matrix<double>::Diagonal(3, {1.0, 2.0, 3.0});
+  EXPECT_EQ(diagonal.Rows(), 3);
+  EXPECT_EQ(diagonal.Cols(), 3);
+  EXPECT_FALSE(diagonal.Empty());
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == j) {
+        EXPECT_TRUE(std::fabs(diagonal(i, j) - (static_cast<double>(i) + 1)) < std::numeric_limits<double>::epsilon());
+      } else {
+        EXPECT_TRUE(diagonal(i, j) == 0.0);
+      }
+    }
+  }
+}
+
+TEST(MatrixStaticCreate, DiagonalIterator) {
+  std::vector<double> values{1.0, 2.0, 3.0};
+  Matrix<double> diagonal = Matrix<double>::Diagonal(values.begin(), values.end());
+  EXPECT_EQ(diagonal.Rows(), 3);
+  EXPECT_EQ(diagonal.Cols(), 3);
+  EXPECT_FALSE(diagonal.Empty());
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      if (i == j) {
+        EXPECT_TRUE(std::fabs(diagonal(i, j) - values[i]) < std::numeric_limits<double>::epsilon());
+      } else {
+        EXPECT_TRUE(diagonal(i, j) == 0.0);
+      }
+    }
+  }
 }
 
 }  // namespace
