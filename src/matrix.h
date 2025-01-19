@@ -2,29 +2,13 @@
 #define MATRIX_H
 
 #include <cassert>
-#include <complex>
-#include <concepts>
 #include <initializer_list>
 #include <iterator>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-namespace linalg::types {
-
-template <typename T>
-struct IsComplex : std::false_type {};
-
-template <std::floating_point T>
-struct IsComplex<std::complex<T>> : std::true_type {};
-
-template <typename T>
-constexpr bool kIsComplexV = IsComplex<T>::value;
-
-template <typename T>
-concept FloatingOrComplexType = std::is_floating_point_v<T> || kIsComplexV<T>;
-
-}  // namespace linalg::types
+#include "scalars.h"
 
 namespace linalg {
 template <types::FloatingOrComplexType Scalar>

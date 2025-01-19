@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <complex>
 #include <concepts>
 #include <iterator>
-#include <limits>
 
 namespace {
 
@@ -47,12 +45,12 @@ TEST(MatrixCtors, InitializerListCtor) {
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
   EXPECT_FALSE(matrix.empty());
-  EXPECT_TRUE(matrix(0, 0) == 1.0);
-  EXPECT_TRUE(matrix(0, 1) == 2.0);
-  EXPECT_TRUE(matrix(0, 2) == 3.0);
-  EXPECT_TRUE(matrix(1, 0) == 4.0);
-  EXPECT_TRUE(matrix(1, 1) == 5.0);
-  EXPECT_TRUE(matrix(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 2), 6.0);
 }
 
 TEST(MatrixCtors, CopyConstructor) {
@@ -61,23 +59,23 @@ TEST(MatrixCtors, CopyConstructor) {
   EXPECT_EQ(copy.Rows(), 2);
   EXPECT_EQ(copy.Cols(), 3);
   EXPECT_FALSE(copy.empty());
-  EXPECT_TRUE(copy(0, 0) == 1.0);
-  EXPECT_TRUE(copy(0, 1) == 2.0);
-  EXPECT_TRUE(copy(0, 2) == 3.0);
-  EXPECT_TRUE(copy(1, 0) == 4.0);
-  EXPECT_TRUE(copy(1, 1) == 5.0);
-  EXPECT_TRUE(copy(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(copy(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(copy(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(copy(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(copy(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(copy(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(copy(1, 2), 6.0);
 
   // No side effects on the original matrix.
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
   EXPECT_FALSE(matrix.empty());
-  EXPECT_TRUE(matrix(0, 0) == 1.0);
-  EXPECT_TRUE(matrix(0, 1) == 2.0);
-  EXPECT_TRUE(matrix(0, 2) == 3.0);
-  EXPECT_TRUE(matrix(1, 0) == 4.0);
-  EXPECT_TRUE(matrix(1, 1) == 5.0);
-  EXPECT_TRUE(matrix(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 2), 6.0);
 }
 
 TEST(MatrixCtors, MoveCtor) {
@@ -86,16 +84,16 @@ TEST(MatrixCtors, MoveCtor) {
   EXPECT_EQ(moved.Rows(), 2);
   EXPECT_EQ(moved.Cols(), 3);
   EXPECT_FALSE(moved.empty());
-  EXPECT_TRUE(moved(0, 0) == 1.0);
-  EXPECT_TRUE(moved(0, 1) == 2.0);
-  EXPECT_TRUE(moved(0, 2) == 3.0);
-  EXPECT_TRUE(moved(1, 0) == 4.0);
-  EXPECT_TRUE(moved(1, 1) == 5.0);
-  EXPECT_TRUE(moved(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(moved(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(moved(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(moved(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(moved(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(moved(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(moved(1, 2), 6.0);
 
   // Data from matrix should be moved.
-  EXPECT_TRUE(matrix.Rows() == 0);
-  EXPECT_TRUE(matrix.Cols() == 0);
+  EXPECT_EQ(matrix.Rows(), 0);
+  EXPECT_EQ(matrix.Cols(), 0);
   EXPECT_TRUE(matrix.empty());
 }
 
@@ -106,23 +104,23 @@ TEST(MatrixAssignment, CopyAssignment) {
   EXPECT_EQ(copy.Rows(), 2);
   EXPECT_EQ(copy.Cols(), 3);
   EXPECT_FALSE(copy.empty());
-  EXPECT_TRUE(copy(0, 0) == 1.0);
-  EXPECT_TRUE(copy(0, 1) == 2.0);
-  EXPECT_TRUE(copy(0, 2) == 3.0);
-  EXPECT_TRUE(copy(1, 0) == 4.0);
-  EXPECT_TRUE(copy(1, 1) == 5.0);
-  EXPECT_TRUE(copy(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(copy(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(copy(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(copy(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(copy(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(copy(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(copy(1, 2), 6.0);
 
   // No side effects on the original matrix.
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
   EXPECT_FALSE(matrix.empty());
-  EXPECT_TRUE(matrix(0, 0) == 1.0);
-  EXPECT_TRUE(matrix(0, 1) == 2.0);
-  EXPECT_TRUE(matrix(0, 2) == 3.0);
-  EXPECT_TRUE(matrix(1, 0) == 4.0);
-  EXPECT_TRUE(matrix(1, 1) == 5.0);
-  EXPECT_TRUE(matrix(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(matrix(1, 2), 6.0);
 }
 
 TEST(MatrixAssignment, MoveAssignment) {
@@ -132,16 +130,16 @@ TEST(MatrixAssignment, MoveAssignment) {
   EXPECT_EQ(moved.Rows(), 2);
   EXPECT_EQ(moved.Cols(), 3);
   EXPECT_FALSE(moved.empty());
-  EXPECT_TRUE(moved(0, 0) == 1.0);
-  EXPECT_TRUE(moved(0, 1) == 2.0);
-  EXPECT_TRUE(moved(0, 2) == 3.0);
-  EXPECT_TRUE(moved(1, 0) == 4.0);
-  EXPECT_TRUE(moved(1, 1) == 5.0);
-  EXPECT_TRUE(moved(1, 2) == 6.0);
+  EXPECT_DOUBLE_EQ(moved(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(moved(0, 1), 2.0);
+  EXPECT_DOUBLE_EQ(moved(0, 2), 3.0);
+  EXPECT_DOUBLE_EQ(moved(1, 0), 4.0);
+  EXPECT_DOUBLE_EQ(moved(1, 1), 5.0);
+  EXPECT_DOUBLE_EQ(moved(1, 2), 6.0);
 
   // Data from matrix should be moved.
-  EXPECT_TRUE(matrix.Rows() == 0);
-  EXPECT_TRUE(matrix.Cols() == 0);
+  EXPECT_EQ(matrix.Rows(), 0);
+  EXPECT_EQ(matrix.Cols(), 0);
   EXPECT_TRUE(matrix.empty());
 }
 
@@ -153,9 +151,9 @@ TEST(MatrixStaticCreate, Identity) {
   for (size_t i = 0; i < 3; ++i) {
     for (size_t j = 0; j < 3; ++j) {
       if (i == j) {
-        EXPECT_TRUE(identity(i, j) == 1.0);
+        EXPECT_DOUBLE_EQ(identity(i, j), 1.0);
       } else {
-        EXPECT_TRUE(identity(i, j) == 0.0);
+        EXPECT_DOUBLE_EQ(identity(i, j), 0.0);
       }
     }
   }
@@ -168,7 +166,7 @@ TEST(MatrixStaticCreate, Zero) {
   EXPECT_FALSE(zero.empty());
   for (size_t i = 0; i < 2; ++i) {
     for (size_t j = 0; j < 3; ++j) {
-      EXPECT_TRUE(zero(i, j) == 0.0);
+      EXPECT_DOUBLE_EQ(zero(i, j), 0.0);
     }
   }
 }
@@ -181,9 +179,9 @@ TEST(MatrixStaticCreate, Unit) {
   for (size_t i = 0; i < 2; ++i) {
     for (size_t j = 0; j < 3; ++j) {
       if (i == 1 && j == 2) {
-        EXPECT_TRUE(unit(i, j) == 1.0);
+        EXPECT_DOUBLE_EQ(unit(i, j), 1.0);
       } else {
-        EXPECT_TRUE(unit(i, j) == 0.0);
+        EXPECT_DOUBLE_EQ(unit(i, j), 0.0);
       }
     }
   }
@@ -197,9 +195,9 @@ TEST(MatrixStaticCreate, DiagonalScalar) {
   for (size_t i = 0; i < 3; ++i) {
     for (size_t j = 0; j < 3; ++j) {
       if (i == j) {
-        EXPECT_TRUE(diagonal(i, j) == 2.0);
+        EXPECT_DOUBLE_EQ(diagonal(i, j), 2.0);
       } else {
-        EXPECT_TRUE(diagonal(i, j) == 0.0);
+        EXPECT_DOUBLE_EQ(diagonal(i, j), 0.0);
       }
     }
   }
@@ -213,9 +211,9 @@ TEST(MatrixStaticCreate, DiagonalList) {
   for (size_t i = 0; i < 3; ++i) {
     for (size_t j = 0; j < 3; ++j) {
       if (i == j) {
-        EXPECT_TRUE(std::fabs(diagonal(i, j) - (static_cast<double>(i) + 1)) < std::numeric_limits<double>::epsilon());
+        EXPECT_DOUBLE_EQ(diagonal(i, j), static_cast<double>(i) + 1);
       } else {
-        EXPECT_TRUE(diagonal(i, j) == 0.0);
+        EXPECT_DOUBLE_EQ(diagonal(i, j), 0.0);
       }
     }
   }
@@ -230,9 +228,9 @@ TEST(MatrixStaticCreate, DiagonalIterator) {
   for (size_t i = 0; i < 3; ++i) {
     for (size_t j = 0; j < 3; ++j) {
       if (i == j) {
-        EXPECT_TRUE(std::fabs(diagonal(i, j) - values[i]) < std::numeric_limits<double>::epsilon());
+        EXPECT_DOUBLE_EQ(diagonal(i, j), values[i]);
       } else {
-        EXPECT_TRUE(diagonal(i, j) == 0.0);
+        EXPECT_DOUBLE_EQ(diagonal(i, j), 0.0);
       }
     }
   }
