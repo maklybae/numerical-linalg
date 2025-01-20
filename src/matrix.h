@@ -211,6 +211,11 @@ class Matrix {
     return Apply(rhs, std::minus<>{});
   }
 
+  Matrix& operator*=(const Matrix& rhs) {
+    *this = *this * rhs;
+    return *this;
+  }
+
   friend Matrix operator+(Matrix lhs, const Matrix& rhs) {
     lhs += rhs;
     return lhs;
@@ -219,6 +224,21 @@ class Matrix {
   friend Matrix operator-(Matrix lhs, const Matrix& rhs) {
     lhs -= rhs;
     return lhs;
+  }
+
+  friend Matrix operator*(const Matrix& lhs, const Matrix& rhs) {
+    assert(lhs.cols_ == rhs.rows_ && "Lhs cols should be equal to rhs rows");
+
+    Matrix result(lhs.rows_, rhs.cols_);
+    for (size_type i = 0; i < lhs.rows_; ++i) {
+      for (size_type j = 0; j < rhs.cols_; ++j) {
+        for (size_type k = 0; k < lhs.cols_; ++k) {
+          result(i, j) += lhs(i, k) * rhs(k, j);
+        }
+      }
+    }
+
+    return result;
   }
 
   // Scalar <op> Matrix or vice versa
