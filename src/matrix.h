@@ -1,6 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <iterator>
@@ -152,8 +153,18 @@ class Matrix {
 
   // Comparison operators.
 
-  friend bool operator==(const Matrix& lhs, const Matrix& rhs) = default;
-  friend bool operator!=(const Matrix& lhs, const Matrix& rhs) = default;
+  friend bool operator==(const Matrix& lhs, const Matrix& rhs) {
+    if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
+      return false;
+    }
+
+    return std::equal(lhs.data_.cbegin(), lhs.data_.cend(), rhs.data_.cbegin(), rhs.data_.cend(),
+                      [](Scalar a, Scalar b) { return scalar_utils::ApproxEqual<Scalar>(a, b); });
+  }
+
+  friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
+    return !(lhs == rhs);
+  }
 
   // Functionals.
   // TODO: Specify Op types ?

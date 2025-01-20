@@ -293,6 +293,33 @@ TEST(MatrixStaticAsserts, ContainerConcepts) {
   static_assert(ContiguousContainer<Matrix<std::complex<double>>>);
 }
 
+TEST(MatrixCompare, ExactEqual) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{1, 2, 3}, {4, 5, 6}};
+  EXPECT_EQ(lhs, rhs);
+}
+
+TEST(MatrixCompare, ApproxEqual) {
+  Matrix<double> lhs{{1. + std::numeric_limits<double>::epsilon() / 2, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{1, 2. - std::numeric_limits<double>::epsilon() / 2, 3}, {4, 5, 6}};
+
+  EXPECT_TRUE(lhs == rhs);
+}
+
+TEST(MatrixCompare, ExactNotEqual) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{1, 2, 3}, {4, 5, 7}};
+
+  EXPECT_TRUE(lhs != rhs);
+}
+
+TEST(MatrixCompare, ApproxNotEqual) {
+  Matrix<double> lhs{{1. + std::numeric_limits<double>::epsilon() / 2, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{1, 2. - std::numeric_limits<double>::epsilon() / 2, 3}, {4, 5, 7}};
+
+  EXPECT_TRUE(lhs != rhs);
+}
+
 TEST(MatrixArithmetic, Negate) {
   Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}};
   Matrix<double> negated = -matrix;
