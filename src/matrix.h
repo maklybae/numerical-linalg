@@ -33,20 +33,17 @@ class Matrix {
   Matrix(const Matrix&) = default;
 
   // Needs to leave other in valid state.
-  Matrix(Matrix&& other) noexcept
-      : rows_{std::exchange(other.rows_, 0)}
-      , cols_{std::exchange(other.cols_, 0)}
-      , data_{std::exchange(other.data_, {})} {}
+  Matrix(Matrix&& other) noexcept : rows_{std::exchange(other.rows_, 0)}, data_{std::exchange(other.data_, {})} {}
 
-  Matrix(size_type rows, size_type cols) : rows_{rows}, cols_{cols}, data_(rows * cols) {}
+  Matrix(size_type rows, size_type cols) : rows_{rows}, data_(rows * cols) {}
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
-    rows_ = list.size();
-    cols_ = list.begin()->size();
-    data_.reserve(rows_ * cols_);
+    rows_         = list.size();
+    auto tmp_cols = list.begin()->size();
+    data_.reserve(rows_ * tmp_cols);
 
     for (auto row : list) {
-      assert(row.size() == cols_ && "All rows should have the same size");
+      assert(row.size() == tmp_cols && "All rows should have the same size");
       data_.insert(data_.end(), row);
     }
   }
@@ -57,11 +54,9 @@ class Matrix {
   Matrix& operator=(Matrix&& other) noexcept {
     Matrix tmp = std::move(other);
     std::swap(rows_, tmp.rows_);
-    std::swap(cols_, tmp.cols_);
     std::swap(data_, tmp.data_);
 
     assert(other.rows_ == 0 && "Rows of moved matrix should be equal 0");
-    assert(other.cols_ == 0 && "Cols of moved matrix should be equal 0");
     assert(other.data_.empty() && "Data of moved matrix should be equal 0");
     return *this;
   }
@@ -69,7 +64,6 @@ class Matrix {
   // NOLINTNEXTLINE(readability-identifier-naming)
   void swap(Matrix& other) {
     std::swap(rows_, other.rows_);
-    std::swap(cols_, other.cols_);
     std::swap(data_, other.data_);
   }
 
@@ -82,7 +76,12 @@ class Matrix {
   }
 
   size_type Cols() const {
-    return cols_;
+    if (empty()) {
+      return 0;
+    }
+
+    assert(rows_ > 0 && "Matrix should have at least one row");
+    return data_.size() / rows_;
   }
 
   // NOLINTBEGIN(readability-identifier-naming)
@@ -98,15 +97,15 @@ class Matrix {
   // NOLINTEND(readability-identifier-naming)
 
   Scalar& operator()(size_type row, size_type col) {
-    assert(row < rows_ && "Row index out of bounds");
-    assert(col < cols_ && "Col index out of bounds");
-    return data_[row * cols_ + col];
+    assert(row < Rows() && "Row index out of bounds");
+    assert(col < Cols() && "Col index out of bounds");
+    return data_[row * Cols() + col];
   }
 
   Scalar operator()(size_type row, size_type col) const {
-    assert(row < rows_ && "Row index out of bounds");
-    assert(col < cols_ && "Col index out of bounds");
-    return data_[row * cols_ + col];
+    assert(row < Rows() && "Row index out of bounds");
+    assert(col < Cols() && "Col index out of bounds");
+    return data_[row * Cols() + col];
   }
 
   // Iterators.
@@ -169,8 +168,8 @@ class Matrix {
 
   template <typename BinaryOp>
   Matrix& Apply(const Matrix& rhs, BinaryOp op) {
-    assert(rows_ == rhs.rows_ && "Matrix rows should be equal");
-    assert(cols_ == rhs.cols_ && "Matrix cols should be equal");
+    assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
+    assert(Cols() == rhs.Cols() && "Matrix cols should be equal");
     assert(!data_.empty() && "Matrix data should not be empty");
 
     std::transform(data_.cbegin(), data_.cend(), rhs.data_.cbegin(), data_.begin(), op);
@@ -179,7 +178,7 @@ class Matrix {
 
   template <typename UnaryOp>
   Matrix& ApplyDiagonal(UnaryOp op) {
-    assert(rows_ == cols_ && "Matrix should be square");
+    assert(Rows() == Cols() && "Matrix should be square");
     assert(!data_.empty() && "Matrix data should not be empty");
 
     for (size_type i = 0; i < rows_; ++i) {
@@ -227,12 +226,12 @@ class Matrix {
   }
 
   friend Matrix operator*(const Matrix& lhs, const Matrix& rhs) {
-    assert(lhs.cols_ == rhs.rows_ && "Lhs cols should be equal to rhs rows");
+    assert(lhs.Cols() == rhs.Rows() && "Lhs cols should be equal to rhs rows");
 
-    Matrix result(lhs.rows_, rhs.cols_);
-    for (size_type i = 0; i < lhs.rows_; ++i) {
-      for (size_type j = 0; j < rhs.cols_; ++j) {
-        for (size_type k = 0; k < lhs.cols_; ++k) {
+    Matrix result(lhs.Rows(), rhs.Cols());
+    for (size_type i = 0; i < lhs.Rows(); ++i) {
+      for (size_type j = 0; j < rhs.Cols(); ++j) {
+        for (size_type k = 0; k < lhs.Cols(); ++k) {
           result(i, j) += lhs(i, k) * rhs(k, j);
         }
       }
@@ -352,7 +351,6 @@ class Matrix {
 
  private:
   size_type rows_{};
-  size_type cols_{};
   StorageType data_{};
 };
 }  // namespace linalg
