@@ -334,6 +334,18 @@ TEST(MatrixArithmetic, InPlaceSubtraction) {
   }
 }
 
+TEST(MatrixArithmetic, InPlaceMultiplication) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8}, {9, 10}, {11, 12}};
+  Matrix<double> expected{{58, 64}, {139, 154}};
+  lhs *= rhs;
+
+  EXPECT_EQ(lhs.Rows(), 2);
+  EXPECT_EQ(lhs.Cols(), 2);
+  EXPECT_FALSE(lhs.empty());
+  EXPECT_EQ(lhs, expected);
+}
+
 TEST(MatrixArithmetic, OutOfPlaceAddition) {
   Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
   Matrix<double> rhs{{7, 8, 9}, {10, 11, 12}};
@@ -360,6 +372,18 @@ TEST(MatrixArithmetic, OutOfPlaceSubtraction) {
       EXPECT_DOUBLE_EQ(diff(i, j), lhs(i, j) - rhs(i, j));
     }
   }
+}
+
+TEST(MatrixArithmetic, OutOfPlaceMultiplication) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8}, {9, 10}, {11, 12}};
+  Matrix<double> expected{{58, 64}, {139, 154}};
+  Matrix<double> product = lhs * rhs;
+
+  EXPECT_EQ(product.Rows(), 2);
+  EXPECT_EQ(product.Cols(), 2);
+  EXPECT_FALSE(product.empty());
+  EXPECT_EQ(product, expected);
 }
 
 TEST(MatrixArithmetic, InPlaceScalarAddition) {
