@@ -183,28 +183,32 @@ class Matrix {
     assert(!data_.empty() && "Matrix data should not be empty");
 
     for (size_type i = 0; i < rows_; ++i) {
-      *this(i, i) = op(*this(i, i));
+      (*this)(i, i) = op((*this)(i, i));
     }
     return *this;
   }
 
   // Arithmetic operators.
 
-  // TODO: Not in-place operators should not be friend functions ?
+  // Unary operators.
+
+  Matrix operator-() {
+    Matrix result(*this);
+    result.Apply(std::negate<>{});
+    return result;
+  }
 
   // Matrix <op> Matrix
 
+  // TODO: Not in-place operators should not be friend functions ?
   // TODO: std::plus<>(),... take elements by reference, but Scalar is better to be passed by value ?
+
   Matrix& operator+=(const Matrix& rhs) {
     return Apply(rhs, std::plus<>{});
   }
 
   Matrix& operator-=(const Matrix& rhs) {
     return Apply(rhs, std::minus<>{});
-  }
-
-  Matrix& operator-() {
-    return Apply(std::negate<>{});
   }
 
   friend Matrix operator+(Matrix lhs, const Matrix& rhs) {
@@ -219,10 +223,12 @@ class Matrix {
 
   // Scalar <op> Matrix or vice versa
 
+  // TODO: Is it counter-intuitive ?
   Matrix& operator+=(Scalar scalar) {
     return ApplyDiagonal([scalar](Scalar value) { return value + scalar; });
   }
 
+  // TODO: Is it counter-intuitive ?
   Matrix& operator-=(Scalar scalar) {
     return ApplyDiagonal([scalar](Scalar value) { return value - scalar; });
   }

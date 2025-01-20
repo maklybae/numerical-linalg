@@ -293,4 +293,161 @@ TEST(MatrixStaticAsserts, ContainerConcepts) {
   static_assert(ContiguousContainer<Matrix<std::complex<double>>>);
 }
 
+TEST(MatrixArithmetic, Negate) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> negated = -matrix;
+  EXPECT_EQ(negated.Rows(), 2);
+  EXPECT_EQ(negated.Cols(), 3);
+  EXPECT_FALSE(negated.empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_DOUBLE_EQ(negated(i, j), -matrix(i, j));
+    }
+  }
+}
+
+TEST(MatrixArithmetic, Addition) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8, 9}, {10, 11, 12}};
+  Matrix<double> sum = lhs + rhs;
+  EXPECT_EQ(sum.Rows(), 2);
+  EXPECT_EQ(sum.Cols(), 3);
+  EXPECT_FALSE(sum.empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_DOUBLE_EQ(sum(i, j), lhs(i, j) + rhs(i, j));
+    }
+  }
+}
+
+TEST(MatrixArithmetic, InPlaceSubtraction) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8, 9}, {10, 11, 12}};
+  Matrix<double> diff = lhs - rhs;
+  EXPECT_EQ(diff.Rows(), 2);
+  EXPECT_EQ(diff.Cols(), 3);
+  EXPECT_FALSE(diff.empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_DOUBLE_EQ(diff(i, j), lhs(i, j) - rhs(i, j));
+    }
+  }
+}
+
+TEST(MatrixArithmetic, OutOfPlaceAddition) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8, 9}, {10, 11, 12}};
+  Matrix<double> sum = lhs + rhs;
+  EXPECT_EQ(sum.Rows(), 2);
+  EXPECT_EQ(sum.Cols(), 3);
+  EXPECT_FALSE(sum.empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_DOUBLE_EQ(sum(i, j), lhs(i, j) + rhs(i, j));
+    }
+  }
+}
+
+TEST(MatrixArithmetic, OutOfPlaceSubtraction) {
+  Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
+  Matrix<double> rhs{{7, 8, 9}, {10, 11, 12}};
+  Matrix<double> diff = lhs - rhs;
+  EXPECT_EQ(diff.Rows(), 2);
+  EXPECT_EQ(diff.Cols(), 3);
+  EXPECT_FALSE(diff.empty());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      EXPECT_DOUBLE_EQ(diff(i, j), lhs(i, j) - rhs(i, j));
+    }
+  }
+}
+
+TEST(MatrixArithmetic, InPlaceScalarAddition) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{3, 2, 3}, {4, 7, 6}, {7, 8, 11}};
+  matrix += 2.0;
+
+  EXPECT_EQ(matrix.Rows(), 3);
+  EXPECT_EQ(matrix.Cols(), 3);
+  EXPECT_FALSE(matrix.empty());
+  EXPECT_EQ(matrix, expected);
+}
+
+TEST(MatrixArithmetic, InPlaceScalarSubtraction) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{-1, 2, 3}, {4, 3, 6}, {7, 8, 7}};
+  matrix -= 2.0;
+
+  EXPECT_EQ(matrix.Rows(), 3);
+  EXPECT_EQ(matrix.Cols(), 3);
+  EXPECT_FALSE(matrix.empty());
+  EXPECT_EQ(matrix, expected);
+}
+
+TEST(MatrixArithmetic, InPlaceScalarMultiplication) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{2, 4, 6}, {8, 10, 12}, {14, 16, 18}};
+  matrix *= 2.0;
+
+  EXPECT_EQ(matrix.Rows(), 3);
+  EXPECT_EQ(matrix.Cols(), 3);
+  EXPECT_FALSE(matrix.empty());
+  EXPECT_EQ(matrix, expected);
+}
+
+TEST(MatrixArithmetic, InPlaceScalarDivision) {
+  Matrix<double> matrix{{2, 4, 6}, {8, 10, 12}, {14, 16, 18}};
+  Matrix<double> expected{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  matrix /= 2.0;
+
+  EXPECT_EQ(matrix.Rows(), 3);
+  EXPECT_EQ(matrix.Cols(), 3);
+  EXPECT_FALSE(matrix.empty());
+  EXPECT_EQ(matrix, expected);
+}
+
+TEST(MatrixArithmetic, OutOfPlaceScalarAddition) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{3, 2, 3}, {4, 7, 6}, {7, 8, 11}};
+  Matrix<double> sum = matrix + 2.0;
+
+  EXPECT_EQ(sum.Rows(), 3);
+  EXPECT_EQ(sum.Cols(), 3);
+  EXPECT_FALSE(sum.empty());
+  EXPECT_EQ(sum, expected);
+}
+
+TEST(MatrixArithmetic, OutOfPlaceScalarSubtraction) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{-1, 2, 3}, {4, 3, 6}, {7, 8, 7}};
+  Matrix<double> diff = matrix - 2.0;
+
+  EXPECT_EQ(diff.Rows(), 3);
+  EXPECT_EQ(diff.Cols(), 3);
+  EXPECT_FALSE(diff.empty());
+  EXPECT_EQ(diff, expected);
+}
+
+TEST(MatrixArithmetic, OutOfPlaceScalarMultiplication) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> expected{{2, 4, 6}, {8, 10, 12}, {14, 16, 18}};
+  Matrix<double> product = matrix * 2.0;
+
+  EXPECT_EQ(product.Rows(), 3);
+  EXPECT_EQ(product.Cols(), 3);
+  EXPECT_FALSE(product.empty());
+  EXPECT_EQ(product, expected);
+}
+
+TEST(MatrixArithmetic, OutOfPlaceScalarDivision) {
+  Matrix<double> matrix{{2, 4, 6}, {8, 10, 12}, {14, 16, 18}};
+  Matrix<double> expected{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<double> quotient = matrix / 2.0;
+
+  EXPECT_EQ(quotient.Rows(), 3);
+  EXPECT_EQ(quotient.Cols(), 3);
+  EXPECT_FALSE(quotient.empty());
+  EXPECT_EQ(quotient, expected);
+}
+
 }  // namespace
