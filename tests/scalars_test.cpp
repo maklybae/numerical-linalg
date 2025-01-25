@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace {
+
 TEST(ScalarTypesConcepts, StaticAssertions) {
   static_assert(linalg::types::FloatingOrComplexType<float>);
   static_assert(linalg::types::FloatingOrComplexType<double>);
@@ -31,3 +33,5 @@ TEST(ScalarUtils, ApproxEqual) {
   EXPECT_TRUE(linalg::scalar_utils::ApproxEqual(
       std::complex{1.0L, 1.0L}, std::complex{1.0L + std::numeric_limits<long double>::epsilon() / 2, 1.0L}));
 }
+
+}  // namespace
