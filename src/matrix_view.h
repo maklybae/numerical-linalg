@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "matrix.h"
+#include "matrix_iterator.h"
 #include "submatrix_range.h"
 
 namespace linalg {
@@ -16,6 +17,15 @@ class BaseMatrixView {
   using Matrix         = std::conditional_t<IsConst, const Matrix<Scalar>, Matrix<Scalar>>;
   using Size           = types::Size;
   using ReturnType     = std::conditional_t<IsConst, Scalar, Scalar&>;
+
+  // NOLINTBEGIN(readability-identifier-naming)
+  using iterator =
+      std::conditional_t<IsConst, iterators::MatrixBlockIterator<Scalar>, iterators::ConstMatrixBlockIterator<Scalar>>;
+  using const_iterator = iterators::ConstMatrixBlockIterator<Scalar>;
+  using reverse_iterator =
+      std::conditional_t<IsConst, std::reverse_iterator<iterator>, std::reverse_iterator<const_iterator>>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  // NOLINTEND(readability-identifier-naming)
 
  public:
   BaseMatrixView() = default;
