@@ -14,7 +14,8 @@ namespace linalg::iterators {
 template <typename Scalar, typename IsConst>
 class BaseMatrixBlockIterator {
  public:
-  using Size = types::Size;
+  using Size       = types::Size;
+  using Difference = types::Difference;
   using StorageIterator =
       std::conditional_t<IsConst::value, typename Matrix<Scalar>::const_iterator, typename Matrix<Scalar>::iterator>;
 
@@ -46,7 +47,7 @@ class BaseMatrixBlockIterator {
     ++col_count_;
     if (col_count_ == cols_) {
       col_count_ = 0;
-      storage_iter_ += shift_;
+      storage_iter_ += static_cast<Difference>(shift_);
     }
     return *this;
   }
@@ -62,7 +63,7 @@ class BaseMatrixBlockIterator {
     --col_count_;
     if (col_count_ == kNoColsLimit) {
       col_count_ = cols_ - 1;
-      storage_iter_ -= shift_;
+      storage_iter_ -= static_cast<Difference>(shift_);
     }
     return *this;
   }
