@@ -9,6 +9,8 @@ namespace linalg::types {
 
 class SubmatrixRange {
  public:
+  SubmatrixRange() = default;
+
   Size RowBegin() const {
     return row_begin_;
   }
@@ -37,12 +39,16 @@ class SubmatrixRange {
     return col_end_ - col_begin_;
   }
 
-  static SubmatrixRange LeadingSubmatrixRange(Size rows, Size cols) {
+  static SubmatrixRange LeadingSubmatrix(Size rows, Size cols) {
     return SubmatrixRange{0, rows, 0, cols};
   }
 
-  static SubmatrixRange LeadingSubmatrixRange(Size size) {
-    return LeadingSubmatrixRange(size, size);
+  static SubmatrixRange LeadingSubmatrix(Size size) {
+    return LeadingSubmatrix(size, size);
+  }
+
+  static SubmatrixRange FullMatrix(Size rows, Size cols) {
+    return SubmatrixRange{0, rows, 0, cols};
   }
 
   static SubmatrixRange FromBeginEnd(Index row_begin, Index row_end, Index col_begin, Index col_end) {
