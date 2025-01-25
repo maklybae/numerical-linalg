@@ -4,6 +4,7 @@
 #include <iterator>
 #include <type_traits>
 
+#include "matrix.h"
 #include "types.h"
 
 namespace linalg::iterators {
@@ -14,6 +15,8 @@ template <typename Scalar, typename IsConst>
 class BaseMatrixBlockIterator {
  public:
   using Size = types::Size;
+  using StorageIterator =
+      std::conditional_t<IsConst::value, typename Matrix<Scalar>::const_iterator, typename Matrix<Scalar>::iterator>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using difference_type   = types::Difference;
@@ -25,24 +28,25 @@ class BaseMatrixBlockIterator {
 
   BaseMatrixBlockIterator() = default;
 
-  explicit BaseMatrixBlockIterator(pointer ptr) : ptr_{ptr} {}
+  explicit BaseMatrixBlockIterator(StorageIterator ptr) : storage_iter_{ptr} {}
 
-  BaseMatrixBlockIterator(pointer ptr, Size cols, Size shift) : ptr_{ptr}, cols_{cols}, shift_{shift} {}
+  BaseMatrixBlockIterator(StorageIterator ptr, Size cols, Size shift)
+      : storage_iter_{ptr}, cols_{cols}, shift_{shift} {}
 
   reference operator*() const {
-    return *ptr_;
+    return *storage_iter_;
   }
 
   pointer operator->() const {
-    return ptr_;
+    return storage_iter_;
   }
 
   BaseMatrixBlockIterator& operator++() {
-    ++ptr_;
+    ++storage_iter_;
     ++col_count_;
     if (col_count_ == cols_) {
       col_count_ = 0;
-      ptr_ += shift_;
+      storage_iter_ += shift_;
     }
     return *this;
   }
@@ -54,11 +58,11 @@ class BaseMatrixBlockIterator {
   }
 
   BaseMatrixBlockIterator& operator--() {
-    --ptr_;
+    --storage_iter_;
     --col_count_;
     if (col_count_ == kNoColsLimit) {
       col_count_ = cols_ - 1;
-      ptr_ -= shift_;
+      storage_iter_ -= shift_;
     }
     return *this;
   }
@@ -70,13 +74,13 @@ class BaseMatrixBlockIterator {
   }
 
   friend bool operator==(const BaseMatrixBlockIterator& lhs, const BaseMatrixBlockIterator& rhs) {
-    return lhs.ptr_ == rhs.ptr_;
+    return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
  private:
   static constexpr Size kNoColsLimit = std::numeric_limits<Size>::max();
 
-  Scalar* ptr_{nullptr};
+  StorageIterator storage_iter_{};
   Size cols_{kNoColsLimit};
   Size col_count_{0};
   Size shift_{0};
