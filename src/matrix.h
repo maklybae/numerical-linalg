@@ -10,12 +10,15 @@
 #include <vector>
 
 #include "scalars.h"
+#include "types.h"
 
 namespace linalg {
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
  public:
   using StorageType = std::vector<Scalar>;
+  using Index       = types::Index;
+  using Difference  = types::Difference;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
@@ -25,8 +28,8 @@ class Matrix {
   using const_iterator         = StorageType::const_iterator;
   using reverse_iterator       = StorageType::reverse_iterator;
   using const_reverse_iterator = StorageType::const_reverse_iterator;
-  using difference_type        = StorageType::difference_type;
-  using size_type              = StorageType::size_type;
+  using difference_type        = Difference;
+  using size_type              = types::Size;
   // NOLINTEND(readability-identifier-naming)
 
   Matrix() = default;
@@ -97,13 +100,13 @@ class Matrix {
   }
   // NOLINTEND(readability-identifier-naming)
 
-  Scalar& operator()(size_type row, size_type col) {
+  Scalar& operator()(Index row, Index col) {
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
     return data_[row * Cols() + col];
   }
 
-  Scalar operator()(size_type row, size_type col) const {
+  Scalar operator()(Index row, Index col) const {
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
     return data_[row * Cols() + col];
@@ -320,7 +323,7 @@ class Matrix {
     return Matrix(rows, cols);
   }
 
-  static Matrix Unit(size_type rows, size_type cols, size_type unit_row, size_type unit_col) {
+  static Matrix Unit(size_type rows, size_type cols, Index unit_row, Index unit_col) {
     Matrix unit(rows, cols);
     unit(unit_row, unit_col) = 1;
     return unit;

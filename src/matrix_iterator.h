@@ -4,6 +4,8 @@
 #include <iterator>
 #include <type_traits>
 
+#include "types.h"
+
 namespace linalg::iterators {
 
 // Cannot implement random access iterator
@@ -11,8 +13,10 @@ namespace linalg::iterators {
 template <typename T, typename IsConst>
 class MatrixBlockIterator {
  public:
+  using Size = types::Size;
+
   // NOLINTBEGIN(readability-identifier-naming)
-  using difference_type   = std::ptrdiff_t;
+  using difference_type   = types::Difference;
   using value_type        = std::remove_cv_t<T>;
   using pointer           = std::conditional_t<IsConst::value, const value_type*, value_type*>;
   using reference         = std::conditional_t<IsConst::value, const value_type&, value_type&>;
@@ -23,7 +27,7 @@ class MatrixBlockIterator {
 
   explicit MatrixBlockIterator(pointer ptr) : ptr_{ptr} {}
 
-  MatrixBlockIterator(pointer ptr, size_t cols, size_t shift) : ptr_{ptr}, cols_{cols}, shift_{shift} {}
+  MatrixBlockIterator(pointer ptr, Size cols, Size shift) : ptr_{ptr}, cols_{cols}, shift_{shift} {}
 
   reference operator*() const {
     return *ptr_;
@@ -70,12 +74,12 @@ class MatrixBlockIterator {
   }
 
  private:
-  static constexpr size_t kNoColsLimit = std::numeric_limits<size_t>::max();
+  static constexpr Size kNoColsLimit = std::numeric_limits<Size>::max();
 
   T* ptr_{nullptr};
-  size_t cols_{kNoColsLimit};
-  size_t col_count_{0};
-  size_t shift_{0};
+  Size cols_{kNoColsLimit};
+  Size col_count_{0};
+  Size shift_{0};
 };
 }  // namespace linalg::iterators
 
