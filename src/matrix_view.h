@@ -83,22 +83,24 @@ class BaseMatrixView {
 
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() const {
-    return iterator{begin_ + static_cast<Difference>(range_.RowBegin() * range_.Cols() + range_.ColBegin()),
+    return iterator{begin_ + static_cast<Difference>(range_.RowBegin() * matrix_cols_ + range_.ColBegin()),
                     range_.Cols(), matrix_cols_ - range_.Cols()};
   }
 
   const_iterator cbegin() const {
-    return const_iterator{begin_ + static_cast<Difference>(range_.RowBegin() * range_.Cols() + range_.ColBegin()),
+    return const_iterator{begin_ + static_cast<Difference>(range_.RowBegin() * matrix_cols_ + range_.ColBegin()),
                           range_.Cols(), matrix_cols_ - range_.Cols()};
   }
 
   iterator end() const {
-    return iterator{begin_ + static_cast<Difference>(range_.RowEnd() * range_.Cols() + range_.ColBegin()),
+    return iterator{begin_ + static_cast<Difference>(range_.RowBegin() * matrix_cols_ + range_.ColBegin() +
+                                                     matrix_cols_ * range_.Rows()),
                     range_.Cols(), matrix_cols_ - range_.Cols()};
   }
 
   const_iterator cend() const {
-    return const_iterator{begin_ + static_cast<Difference>(range_.RowEnd() * range_.Cols() + range_.ColBegin()),
+    return const_iterator{begin_ + static_cast<Difference>(range_.RowBegin() * matrix_cols_ + range_.ColBegin() +
+                                                           matrix_cols_ * range_.Rows()),
                           range_.Cols(), matrix_cols_ - range_.Cols()};
   }
 
