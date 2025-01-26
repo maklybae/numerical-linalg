@@ -29,10 +29,10 @@ class BaseMatrixBlockIterator {
 
   BaseMatrixBlockIterator() = default;
 
-  explicit BaseMatrixBlockIterator(StorageIterator ptr) : storage_iter_{ptr} {}
+  explicit BaseMatrixBlockIterator(StorageIterator iter) : storage_iter_{iter} {}
 
-  BaseMatrixBlockIterator(StorageIterator ptr, Size cols, Size shift)
-      : storage_iter_{ptr}, cols_{cols}, shift_{shift} {}
+  BaseMatrixBlockIterator(StorageIterator iter, Size cols, Size shift)
+      : storage_iter_{iter}, cols_{cols}, shift_{shift} {}
 
   reference operator*() const {
     return *storage_iter_;
