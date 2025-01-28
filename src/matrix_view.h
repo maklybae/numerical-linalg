@@ -118,12 +118,6 @@ class BaseMatrixView {
 };
 
 template <typename Scalar>
-BaseMatrixView(Matrix<Scalar>&) -> BaseMatrixView<Scalar, false>;
-
-template <typename Scalar>
-BaseMatrixView(const Matrix<Scalar>&) -> BaseMatrixView<Scalar, true>;
-
-template <typename Scalar>
 using MatrixView = BaseMatrixView<Scalar, false>;
 
 template <typename Scalar>
