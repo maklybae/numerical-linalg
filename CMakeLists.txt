@@ -6,38 +6,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
+set(BUILD_GMOCK OFF)
+set(INSTALL_GMOCK OFF)
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.zip
 )
 FetchContent_MakeAvailable(googletest)
 
-add_compile_options(
-    -g
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wcast-align -Wcast-qual -Wconversion -Wctor-dtor-privacy)
+    add_compile_options(-Wenum-compare -Wfloat-equal -Wnon-virtual-dtor)
+    add_compile_options(-Wold-style-cast -Woverloaded-virtual -Wredundant-decls)
+    add_compile_options(-Wsign-conversion -Wsign-promo)
 
-    -fsanitize=address
-
-    -Werror
-
-    -Wall
-    -Wextra
-    -Wpedantic
-
-    -Wcast-align
-    -Wcast-qual
-    -Wconversion
-    -Wctor-dtor-privacy
-    -Wenum-compare
-    -Wfloat-equal
-    -Wnon-virtual-dtor
-    -Wold-style-cast
-    -Woverloaded-virtual
-    -Wredundant-decls
-    -Wsign-conversion
-    -Wsign-promo
-)
-
-add_link_options(-fsanitize=address)
+    # Проверка ОС перед включением санитайзеров
+    if (UNIX)
+        add_compile_options(-fsanitize=address)
+        add_link_options(-fsanitize=address)
+    endif()
+endif()
 
 enable_testing()
 
