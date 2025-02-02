@@ -15,10 +15,12 @@
 namespace linalg {
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
+ private:
+  using StorageType    = std::vector<Scalar>;
+  using UnderlyingSize = typename StorageType::size_type;
+
  public:
-  using StorageType = std::vector<Scalar>;
-  using Index       = types::Index;
-  using Difference  = types::Difference;
+  using Index = types::Index;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
@@ -28,7 +30,7 @@ class Matrix {
   using const_iterator         = StorageType::const_iterator;
   using reverse_iterator       = StorageType::reverse_iterator;
   using const_reverse_iterator = StorageType::const_reverse_iterator;
-  using difference_type        = Difference;
+  using difference_type        = types::Difference;
   using size_type              = types::Size;
   // NOLINTEND(readability-identifier-naming)
 
@@ -39,13 +41,22 @@ class Matrix {
   // Needs to leave other in valid state.
   Matrix(Matrix&& other) noexcept : rows_{std::exchange(other.rows_, 0)}, data_{std::exchange(other.data_, {})} {}
 
-  Matrix(size_type rows, size_type cols) : rows_{rows}, data_(rows * cols) {}
+  Matrix(size_type rows, size_type cols) {
+    assert(rows > 0 && "Matrix should have at least one row");
+    assert(cols > 0 && "Matrix should have at least one col");
+
+    rows_ = rows;
+    data_.resize(ToUnderlyingSize(rows * cols));
+  }
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
-    rows_         = list.size();
-    auto tmp_cols = list.begin()->size();
-    data_.reserve(rows_ * tmp_cols);
+    rows_ = ToSizeType(list.size());
+    assert(rows_ > 0 && "Matrix should have at least one row");
 
+    auto tmp_cols = list.begin()->size();
+    assert(tmp_cols > 0 && "Matrix should have at least one col");
+
+    data_.reserve(list.size() * tmp_cols);
     for (auto row : list) {
       assert(row.size() == tmp_cols && "All rows should have the same size");
       data_.insert(data_.end(), row);
@@ -60,15 +71,15 @@ class Matrix {
     std::swap(rows_, tmp.rows_);
     std::swap(data_, tmp.data_);
 
-    assert(other.rows_ == 0 && "Rows of moved matrix should be equal 0");
-    assert(other.data_.empty() && "Data of moved matrix should be equal 0");
+    assert(other.rows_ == 0 && "Moved matrix should be empty");
+    assert(other.data_.empty() && "Moved matrix should be empty");
     return *this;
   }
 
   // NOLINTNEXTLINE(readability-identifier-naming)
-  void swap(Matrix& other) {
-    std::swap(rows_, other.rows_);
-    std::swap(data_, other.data_);
+  friend void swap(Matrix& lhs, Matrix& rhs) {
+    std::swap(lhs.rows_, rhs.rows_);
+    std::swap(lhs.data_, rhs.data_);
   }
 
   ~Matrix() = default;
@@ -80,36 +91,27 @@ class Matrix {
   }
 
   size_type Cols() const {
-    if (empty()) {
-      return 0;
-    }
-
-    assert(rows_ > 0 && "Matrix should have at least one row");
-    return data_.size() / rows_;
+    return rows_ == 0 ? 0 : ToSizeType(data_.size()) / rows_;
   }
-
-  // NOLINTBEGIN(readability-identifier-naming)
-  size_type size() const {
-    return data_.size();
-  }
-  size_type max_size() const {
-    return data_.max_size();
-  }
-  bool empty() const {
-    return data_.empty();
-  }
-  // NOLINTEND(readability-identifier-naming)
 
   Scalar& operator()(Index row, Index col) {
+    assert(row >= 0 && "Row index should be non-negative");
     assert(row < Rows() && "Row index out of bounds");
+    assert(col >= 0 && "Col index should be non-negative");
     assert(col < Cols() && "Col index out of bounds");
-    return data_[row * Cols() + col];
+
+    // To avoid -Wsign-conversion.
+    return data_[ToUnderlyingSize(row * Cols() + col)];
   }
 
   Scalar operator()(Index row, Index col) const {
+    assert(row >= 0 && "Row index should be non-negative");
     assert(row < Rows() && "Row index out of bounds");
+    assert(col >= 0 && "Col index should be non-negative");
     assert(col < Cols() && "Col index out of bounds");
-    return data_[row * Cols() + col];
+
+    // To avoid -Wsign-conversion.
+    return data_[ToUnderlyingSize(row * Cols() + col)];
   }
 
   // Iterators.
@@ -161,7 +163,7 @@ class Matrix {
       return false;
     }
 
-    return std::equal(lhs.data_.cbegin(), lhs.data_.cend(), rhs.data_.cbegin(), rhs.data_.cend(),
+    return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
                       [](Scalar a, Scalar b) { return scalar_utils::ApproxEqual<Scalar>(a, b); });
   }
 
@@ -170,28 +172,17 @@ class Matrix {
   }
 
   // Functionals.
-  // TODO: Specify Op types ?
 
   template <typename UnaryOp>
   Matrix& Apply(UnaryOp op) {
     assert(!data_.empty() && "Matrix data should not be empty");
 
-    std::transform(data_.cbegin(), data_.cend(), data_.begin(), op);
-    return *this;
-  }
-
-  template <typename BinaryOp>
-  Matrix& Apply(const Matrix& rhs, BinaryOp op) {
-    assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
-    assert(Cols() == rhs.Cols() && "Matrix cols should be equal");
-    assert(!data_.empty() && "Matrix data should not be empty");
-
-    std::transform(data_.cbegin(), data_.cend(), rhs.data_.cbegin(), data_.begin(), op);
+    std::transform(cbegin(), cend(), begin(), std::move(op));
     return *this;
   }
 
   template <typename UnaryOp>
-  Matrix& ApplyDiagonal(UnaryOp op) {
+  Matrix& ApplyOnDiagonal(UnaryOp op) {
     assert(Rows() == Cols() && "Matrix should be square");
     assert(!data_.empty() && "Matrix data should not be empty");
 
@@ -213,9 +204,6 @@ class Matrix {
 
   // Matrix <op> Matrix
 
-  // TODO: Not in-place operators should not be friend functions ?
-  // TODO: std::plus<>(),... take elements by reference, but Scalar is better to be passed by value ?
-
   Matrix& operator+=(const Matrix& rhs) {
     return Apply(rhs, std::plus<>{});
   }
@@ -229,12 +217,38 @@ class Matrix {
     return *this;
   }
 
-  friend Matrix operator+(Matrix lhs, const Matrix& rhs) {
+  friend Matrix operator+(const Matrix& lhs, const Matrix& rhs) {
+    Matrix result(lhs);
+    result += rhs;
+    return result;
+  }
+  friend Matrix operator+(Matrix&& lhs, const Matrix& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+  friend Matrix operator+(const Matrix& lhs, Matrix&& rhs) {
+    rhs += lhs;
+    return rhs;
+  }
+  friend Matrix operator+(Matrix&& lhs, Matrix&& rhs) {
     lhs += rhs;
     return lhs;
   }
 
-  friend Matrix operator-(Matrix lhs, const Matrix& rhs) {
+  friend Matrix operator-(const Matrix& lhs, const Matrix& rhs) {
+    Matrix result(lhs);
+    result -= rhs;
+    return result;
+  }
+  friend Matrix operator-(Matrix&& lhs, const Matrix& rhs) {
+    lhs -= rhs;
+    return lhs;
+  }
+  friend Matrix operator-(const Matrix& lhs, Matrix&& rhs) {
+    rhs -= lhs;
+    return rhs;
+  }
+  friend Matrix operator-(Matrix&& lhs, Matrix&& rhs) {
     lhs -= rhs;
     return lhs;
   }
@@ -256,14 +270,12 @@ class Matrix {
 
   // Scalar <op> Matrix or vice versa
 
-  // TODO: Is it counter-intuitive ?
   Matrix& operator+=(Scalar scalar) {
-    return ApplyDiagonal([scalar](Scalar value) { return value + scalar; });
+    return ApplyOnDiagonal([scalar](Scalar value) { return value + scalar; });
   }
 
-  // TODO: Is it counter-intuitive ?
   Matrix& operator-=(Scalar scalar) {
-    return ApplyDiagonal([scalar](Scalar value) { return value - scalar; });
+    return ApplyOnDiagonal([scalar](Scalar value) { return value - scalar; });
   }
 
   Matrix& operator*=(Scalar scalar) {
@@ -313,9 +325,7 @@ class Matrix {
 
   static Matrix Identity(size_type size) {
     Matrix identity(size, size);
-    for (size_type i = 0; i < size; ++i) {
-      identity(i, i) = 1;
-    }
+    identity.ApplyOnDiagonal([](Scalar) { return 1; });
     return identity;
   }
 
@@ -323,27 +333,22 @@ class Matrix {
     return Matrix(rows, cols);
   }
 
-  static Matrix Unit(size_type rows, size_type cols, Index unit_row, Index unit_col) {
+  static Matrix SingleEntry(size_type rows, size_type cols, Index unit_row, Index unit_col) {
     Matrix unit(rows, cols);
     unit(unit_row, unit_col) = 1;
     return unit;
   }
 
-  static Matrix Diagonal(size_type size, Scalar value) {
+  static Matrix ScalarMatrix(size_type size, Scalar value) {
     Matrix diagonal(size, size);
-    for (size_type i = 0; i < size; ++i) {
-      diagonal(i, i) = value;
-    }
+    diagonal.ApplyOnDiagonal([value](Scalar) { return value; });
     return diagonal;
   }
 
-  static Matrix Diagonal(size_type size, std::initializer_list<Scalar> list) {
-    Matrix diagonal(size, size);
-    size_type i{0};
-    for (auto value : list) {
-      diagonal(i, i) = value;
-      ++i;
-    }
+  static Matrix Diagonal(std::initializer_list<Scalar> list) {
+    Matrix diagonal(ToSizeType(list.size()), ToSizeType(list.size()));
+    auto iter = list.begin();
+    diagonal.ApplyOnDiagonal([&iter](Scalar) { return *iter++; });
     return diagonal;
   }
 
@@ -351,19 +356,34 @@ class Matrix {
   static Matrix Diagonal(InputIterator first, InputIterator last) {
     static_assert(std::is_same_v<typename std::iterator_traits<InputIterator>::value_type, Scalar>,
                   "Iterator value type should be the same as matrix scalar type");
-    auto ssize{std::distance(first, last)};
-
-    assert(ssize >= 0 && "Iterator range should be non-negative");
-    size_type size{static_cast<size_type>(ssize)};
+    auto size{std::distance(first, last)};
+    assert(size >= 0 && "Iterator range should be non-negative");
 
     Matrix diagonal(size, size);
-    for (size_type i = 0; first != last; ++first, ++i) {
-      diagonal(i, i) = *first;
-    }
+    diagonal.ApplyOnDiagonal([&first](Scalar) { return *first++; });
     return diagonal;
   }
 
  private:
+  template <typename BinaryOp>
+  Matrix& Apply(const Matrix& rhs, BinaryOp op) {
+    assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
+    assert(Cols() == rhs.Cols() && "Matrix cols should be equal");
+
+    std::transform(cbegin(), cend(), rhs.cbegin(), begin(), std::move(op));
+    return *this;
+  }
+
+  static UnderlyingSize ToUnderlyingSize(size_type size) {
+    assert(size >= 0 && "Size should be non-negative");
+    return static_cast<UnderlyingSize>(size);
+  }
+
+  static size_type ToSizeType(UnderlyingSize size) {
+    assert(size <= std::numeric_limits<size_type>::max() && "Size should fit into size_type");
+    return static_cast<size_type>(size);
+  }
+
   size_type rows_{};
   StorageType data_{};
 };
