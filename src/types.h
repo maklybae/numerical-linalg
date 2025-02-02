@@ -1,14 +1,30 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <complex>
+#include <concepts>
 #include <cstddef>
+
+namespace linalg::types::details {
+
+template <typename T>
+struct IsComplex : std::false_type {};
+
+template <std::floating_point T>
+struct IsComplex<std::complex<T>> : std::true_type {};
+
+template <typename T>
+constexpr bool kIsComplexV = IsComplex<T>::value;
+}  // namespace linalg::types::details
 
 namespace linalg::types {
 
-using Size       = std::size_t;
-using Index      = std::size_t;
-using Difference = std::ptrdiff_t;
+template <typename T>
+concept FloatingOrComplexType = std::is_floating_point_v<T> || details::kIsComplexV<T>;
 
+using Size       = std::ptrdiff_t;
+using Index      = std::ptrdiff_t;
+using Difference = std::ptrdiff_t;
 }  // namespace linalg::types
 
 #endif

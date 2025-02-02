@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../src/types.h"
+
 namespace {
 
 TEST(ScalarTypesConcepts, StaticAssertions) {
