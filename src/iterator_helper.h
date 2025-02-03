@@ -128,10 +128,10 @@ class BlockMovingLogic : public Accessor {
 };
 
 template <typename Scalar>
-using DebugBlockIterator = BlockMovingLogic<Accessor<Defines<Scalar>>>;
+using MatrixBlockIterator = BlockMovingLogic<Accessor<Defines<Scalar>>>;
 
 template <typename Scalar>
-using DebugConstBlockIterator = BlockMovingLogic<Accessor<ConstDefines<Scalar>>>;
+using ConstMatrixBlockIterator = BlockMovingLogic<Accessor<ConstDefines<Scalar>>>;
 
 }  // namespace linalg::iterators
 

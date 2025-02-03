@@ -3,8 +3,8 @@
 #include <iterator>
 #include <vector>
 
+#include "../src/iterator_helper.h"
 #include "../src/matrix.h"
-#include "../src/matrix_iterator.h"
 #include "../src/matrix_view.h"
 
 namespace {

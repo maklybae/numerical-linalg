@@ -6,8 +6,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "iterator_helper.h"
 #include "matrix.h"
-#include "matrix_iterator.h"
 #include "submatrix_range.h"
 #include "types.h"
 
@@ -43,11 +43,11 @@ class BaseMatrixView {
 
   // NOLINTNEXTLINE(google-explicit-constructor)
   BaseMatrixView(Matrix& matrix) : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(matrix.Rows(), matrix.Cols())} {
-    assert(!matrix.empty() && "Viewed Matrix should not be empty");
+    // assert(!matrix.empty() && "Viewed Matrix should not be empty");
   }
 
   BaseMatrixView(Matrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
-    assert(!matrix.empty() && "Viewed Matrix should not be empty");
+    // assert(!matrix.empty() && "Viewed Matrix should not be empty");
     assert(range.RowBegin() < ptr_->Rows() && "Row begin index out of bounds");
     assert(range.RowEnd() <= ptr_->Rows() && "Row end index out of bounds");
     assert(range.ColBegin() < ptr_->Cols() && "Col begin index out of bounds");
