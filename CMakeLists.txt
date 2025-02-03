@@ -23,7 +23,6 @@ else()
     add_compile_options(-Wold-style-cast -Woverloaded-virtual -Wredundant-decls)
     add_compile_options(-Wsign-conversion -Wsign-promo)
 
-    # Проверка ОС перед включением санитайзеров
     if (UNIX)
         add_compile_options(-fsanitize=address)
         add_link_options(-fsanitize=address)
