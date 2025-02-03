@@ -13,8 +13,36 @@ using linalg::ConstMatrixView;
 using linalg::Matrix;
 using linalg::MatrixView;
 using linalg::iterators::ConstMatrixBlockIterator;
+using linalg::iterators::ConstMatrixRowIterator;
 using linalg::iterators::MatrixBlockIterator;
+using linalg::iterators::MatrixRowIterator;
 using linalg::types::SubmatrixRange;
+
+TEST(MatrixRowIterator, IteratorConcept) {
+  static_assert(std::contiguous_iterator<MatrixRowIterator<double>>);
+  static_assert(std::contiguous_iterator<MatrixRowIterator<const double>>);
+
+  static_assert(std::contiguous_iterator<ConstMatrixRowIterator<double>>);
+  static_assert(std::contiguous_iterator<ConstMatrixRowIterator<const double>>);
+}
+
+TEST(MatrixRowIterator, IterateOverMatrix) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  MatrixRowIterator<double> iter{matrix.begin()};
+  std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::vector<double> actual(iter, iter + 9);
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixRowIterator, IterateOverConstMatrix) {
+  const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  ConstMatrixRowIterator<double> iter{matrix.begin()};
+  std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::vector<double> actual(iter, iter + 9);
+
+  EXPECT_EQ(actual, expected);
+}
 
 TEST(MatrixBlockIterator, IteratorConcept) {
   static_assert(std::bidirectional_iterator<MatrixBlockIterator<double>>);
