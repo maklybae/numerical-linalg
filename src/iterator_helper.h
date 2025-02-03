@@ -1,6 +1,9 @@
 #ifndef ITERATOR_HELPER_H
 #define ITERATOR_HELPER_H
 
+#include <compare>
+#include <iterator>
+
 #include "matrix.h"
 #include "types.h"
 
@@ -46,14 +49,14 @@ class Accessor : public Defines {
   using typename Defines::reference;
   using typename Defines::StorageIterator;
 
-  Accessor() = default;
+  Accessor() = default;  // to satisfy default constructible iterator concept
 
   reference operator*() const {
     return *storage_iter_;
   }
 
   pointer operator->() const {
-    if constexpr (std::is_pointer_v<pointer>) {
+    if constexpr (std::is_pointer_v<StorageIterator>) {
       return storage_iter_;
     }
     return storage_iter_.operator->();
@@ -64,6 +67,26 @@ class Accessor : public Defines {
 
   explicit Accessor(StorageIterator iter) : storage_iter_{iter} {}
 };
+
+template <DefinesPolicy Defines>
+class RandomAccessor : public Accessor<Defines> {
+ public:
+  using Accessor = Accessor<Defines>;
+  using Accessor::Accessor;
+  using typename Accessor::difference_type;
+  using typename Accessor::pointer;
+  using typename Accessor::reference;
+  using typename Accessor::StorageIterator;
+
+  reference operator[](difference_type n) const {
+    return storage_iter_[n];
+  }
+
+ protected:
+  using Accessor::storage_iter_;
+};
+
+// TODO: Add AccessorPolicy concept
 
 template <typename Accessor>
 class BlockMovingLogic : public Accessor {
@@ -126,6 +149,88 @@ class BlockMovingLogic : public Accessor {
   Size shift_{0};
   Size col_count_{0};
 };
+
+template <typename Accessor>
+class RowMovingLogic : public Accessor {
+ public:
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  using iterator_category = std::contiguous_iterator_tag;
+  using typename Accessor::StorageIterator;
+  using Size       = types::Size;
+  using Difference = types::Difference;
+
+  RowMovingLogic() = default;
+
+  explicit RowMovingLogic(StorageIterator iter) : Accessor{iter} {}
+
+  RowMovingLogic& operator++() {
+    ++storage_iter_;
+    return *this;
+  }
+
+  RowMovingLogic operator++(int) {
+    RowMovingLogic tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+
+  RowMovingLogic& operator--() {
+    --storage_iter_;
+    return *this;
+  }
+
+  RowMovingLogic operator--(int) {
+    RowMovingLogic tmp = *this;
+    --(*this);
+    return tmp;
+  }
+
+  RowMovingLogic& operator+=(Size n) {
+    storage_iter_ += n;
+    return *this;
+  }
+
+  friend RowMovingLogic operator+(RowMovingLogic lhs, Size n) {
+    lhs += n;
+    return lhs;
+  }
+
+  friend RowMovingLogic operator+(Size n, RowMovingLogic rhs) {
+    rhs += n;
+    return rhs;
+  }
+
+  RowMovingLogic& operator-=(Size n) {
+    storage_iter_ -= n;
+    return *this;
+  }
+
+  friend RowMovingLogic operator-(RowMovingLogic lhs, Size n) {
+    lhs -= n;
+    return lhs;
+  }
+
+  friend Difference operator-(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+    return lhs.storage_iter_ - rhs.storage_iter_;
+  }
+
+  friend std::strong_ordering operator<=>(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+    return lhs.storage_iter_ <=> rhs.storage_iter_;
+  }
+
+  friend bool operator==(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+    return lhs.storage_iter_ == rhs.storage_iter_;
+  }
+
+ private:
+  using Accessor::storage_iter_;
+};
+
+template <typename Scalar>
+using MatrixRowIterator = RowMovingLogic<RandomAccessor<Defines<Scalar>>>;
+
+template <typename Scalar>
+using ConstMatrixRowIterator = RowMovingLogic<RandomAccessor<ConstDefines<Scalar>>>;
 
 template <typename Scalar>
 using MatrixBlockIterator = BlockMovingLogic<Accessor<Defines<Scalar>>>;
