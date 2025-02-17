@@ -6,7 +6,6 @@
 #include <cstddef>
 
 namespace linalg::types::details {
-
 template <typename T>
 struct IsComplex : std::false_type {};
 
@@ -25,6 +24,15 @@ concept FloatingOrComplexType = std::is_floating_point_v<T> || details::kIsCompl
 using Size       = std::ptrdiff_t;
 using Index      = std::ptrdiff_t;
 using Difference = std::ptrdiff_t;
+
+template <typename T>
+using Storage = std::vector<T>;
+
+template <typename T>
+using StorageIterator = typename Storage<T>::iterator;
+
+template <typename T>
+using ConstStorageIterator = typename Storage<T>::const_iterator;
 }  // namespace linalg::types
 
 #endif

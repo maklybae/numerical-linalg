@@ -12,23 +12,19 @@ namespace {
 using linalg::ConstMatrixView;
 using linalg::Matrix;
 using linalg::MatrixView;
-using linalg::iterators::ConstMatrixBlockIterator;
-using linalg::iterators::ConstMatrixRowIterator;
-using linalg::iterators::MatrixBlockIterator;
-using linalg::iterators::MatrixRowIterator;
 using linalg::types::SubmatrixRange;
 
 TEST(MatrixRowIterator, IteratorConcept) {
-  static_assert(std::contiguous_iterator<MatrixRowIterator<double>>);
-  static_assert(std::contiguous_iterator<MatrixRowIterator<const double>>);
+  static_assert(std::contiguous_iterator<Matrix<double>::iterator>);
+  static_assert(std::contiguous_iterator<Matrix<const double>::iterator>);
 
-  static_assert(std::contiguous_iterator<ConstMatrixRowIterator<double>>);
-  static_assert(std::contiguous_iterator<ConstMatrixRowIterator<const double>>);
+  static_assert(std::contiguous_iterator<Matrix<double>::const_iterator>);
+  static_assert(std::contiguous_iterator<Matrix<const double>::const_iterator>);
 }
 
 TEST(MatrixRowIterator, IterateOverMatrix) {
   Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-  MatrixRowIterator<double> iter{matrix.begin()};
+  Matrix<double>::iterator iter{matrix.begin()};
   std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::vector<double> actual(iter, iter + 9);
 
@@ -37,7 +33,7 @@ TEST(MatrixRowIterator, IterateOverMatrix) {
 
 TEST(MatrixRowIterator, IterateOverConstMatrix) {
   const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-  ConstMatrixRowIterator<double> iter{matrix.begin()};
+  Matrix<double>::const_iterator iter{matrix.begin()};
   std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::vector<double> actual(iter, iter + 9);
 
@@ -45,27 +41,27 @@ TEST(MatrixRowIterator, IterateOverConstMatrix) {
 }
 
 TEST(MatrixBlockIterator, IteratorConcept) {
-  static_assert(std::bidirectional_iterator<MatrixBlockIterator<double>>);
-  static_assert(std::bidirectional_iterator<MatrixBlockIterator<const double>>);
+  static_assert(std::bidirectional_iterator<MatrixView<double>::iterator>);
+  static_assert(std::bidirectional_iterator<MatrixView<const double>::iterator>);
 
-  static_assert(std::bidirectional_iterator<ConstMatrixBlockIterator<double>>);
-  static_assert(std::bidirectional_iterator<ConstMatrixBlockIterator<const double>>);
+  static_assert(std::bidirectional_iterator<ConstMatrixView<double>::iterator>);
+  static_assert(std::bidirectional_iterator<ConstMatrixView<const double>::iterator>);
 }
 
 TEST(MatrixBlockIterator, ConstMatrixView) {
   const Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
   ConstMatrixView<double> view{matrix};
 
-  static_assert(std::is_same_v<decltype(view)::iterator, ConstMatrixBlockIterator<double>>);
-  static_assert(std::is_same_v<decltype(view)::const_iterator, ConstMatrixBlockIterator<double>>);
+  static_assert(std::is_same_v<decltype(view)::iterator, ConstMatrixView<double>::iterator>);
+  static_assert(std::is_same_v<decltype(view)::const_iterator, ConstMatrixView<double>::iterator>);
 }
 
 TEST(MatrixBlockIterator, MatrixView) {
   Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
   MatrixView<double> view{matrix};
 
-  static_assert(std::is_same_v<decltype(view)::iterator, MatrixBlockIterator<double>>);
-  static_assert(std::is_same_v<decltype(view)::const_iterator, ConstMatrixBlockIterator<double>>);
+  static_assert(std::is_same_v<decltype(view)::iterator, MatrixView<double>::iterator>);
+  static_assert(std::is_same_v<decltype(view)::const_iterator, ConstMatrixView<double>::iterator>);
 }
 
 TEST(MatrixViewIterator, FullMatrixIterate) {

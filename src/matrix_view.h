@@ -15,6 +15,9 @@ namespace linalg {
 template <typename Scalar, bool IsConst>
 class BaseMatrixView {
  public:
+  using BlockIterator      = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::DefaultDefines<Scalar>>>;
+  using ConstBlockIterator = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
+
   using SubmatrixRange = types::SubmatrixRange;
   using Matrix         = std::conditional_t<IsConst, const Matrix<Scalar>, Matrix<Scalar>>;
   using Size           = types::Size;
@@ -22,9 +25,8 @@ class BaseMatrixView {
   using ReturnType     = std::conditional_t<IsConst, Scalar, Scalar&>;
 
   // NOLINTBEGIN(readability-identifier-naming)
-  using iterator =
-      std::conditional_t<IsConst, iterators::ConstMatrixBlockIterator<Scalar>, iterators::MatrixBlockIterator<Scalar>>;
-  using const_iterator = iterators::ConstMatrixBlockIterator<Scalar>;
+  using iterator       = std::conditional_t<IsConst, ConstBlockIterator, BlockIterator>;
+  using const_iterator = ConstBlockIterator;
   using reverse_iterator =
       std::conditional_t<IsConst, std::reverse_iterator<iterator>, std::reverse_iterator<const_iterator>>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -74,24 +76,26 @@ class BaseMatrixView {
 
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() const {
-    return iterator{ptr_->begin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()),
+    return iterator{ptr_->RawBegin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()),
                     range_.Cols(), ptr_->Cols() - range_.Cols()};
   }
 
   const_iterator cbegin() const {
-    return const_iterator{ptr_->begin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()),
-                          range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return const_iterator{
+        ptr_->RawBegin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()), range_.Cols(),
+        ptr_->Cols() - range_.Cols()};
   }
 
   iterator end() const {
-    return iterator{
-        ptr_->begin() + static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
-        range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return iterator{ptr_->RawBegin() +
+                        static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
+                    range_.Cols(), ptr_->Cols() - range_.Cols()};
   }
 
   const_iterator cend() const {
     return const_iterator{
-        ptr_->begin() + static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
+        ptr_->RawBegin() +
+            static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
         range_.Cols(), ptr_->Cols() - range_.Cols()};
   }
 

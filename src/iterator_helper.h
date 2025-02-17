@@ -5,7 +5,6 @@
 #include <iterator>
 #include <type_traits>
 
-#include "matrix.h"
 #include "types.h"
 
 namespace linalg::iterators {
@@ -21,7 +20,7 @@ concept DefinesPolicy = requires {
 
 template <typename Scalar>
 struct DefaultDefines {
-  using StorageIterator = typename Matrix<Scalar>::iterator;
+  using StorageIterator = typename types::StorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using difference_type = types::Difference;
@@ -33,7 +32,7 @@ struct DefaultDefines {
 
 template <typename Scalar>
 struct ConstDefines {
-  using StorageIterator = typename Matrix<Scalar>::const_iterator;
+  using StorageIterator = typename types::ConstStorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using difference_type = types::Difference;
@@ -223,22 +222,13 @@ class RowMovingLogic : public Accessor {
     return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
+  friend bool operator!=(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+    return !(lhs == rhs);
+  }
+
  private:
   using Accessor::storage_iter_;
 };
-
-template <typename Scalar>
-using MatrixRowIterator = RowMovingLogic<RandomAccessor<DefaultDefines<Scalar>>>;
-
-template <typename Scalar>
-using ConstMatrixRowIterator = RowMovingLogic<RandomAccessor<ConstDefines<Scalar>>>;
-
-template <typename Scalar>
-using MatrixBlockIterator = BlockMovingLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
-
-template <typename Scalar>
-using ConstMatrixBlockIterator = BlockMovingLogic<DefaultAccessor<ConstDefines<Scalar>>>;
-
 }  // namespace linalg::iterators
 
 #endif

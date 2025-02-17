@@ -7,32 +7,39 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
+#include "iterator_helper.h"
 #include "scalars.h"
 #include "types.h"
 
 namespace linalg {
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
- private:
-  using StorageType    = std::vector<Scalar>;
-  using UnderlyingSize = typename StorageType::size_type;
+  using StorageType          = types::Storage<Scalar>;
+  using UnderlyingSize       = typename StorageType::size_type;
+  using StorageIterator      = typename StorageType::iterator;
+  using ConstStorageIterator = typename StorageType::const_iterator;
 
  public:
   using Index = types::Index;
+
+  using RowIterator      = iterators::RowMovingLogic<iterators::RandomAccessor<iterators::DefaultDefines<Scalar>>>;
+  using ConstRowIterator = iterators::RowMovingLogic<iterators::RandomAccessor<iterators::ConstDefines<Scalar>>>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
   using reference              = Scalar&;
   using const_reference        = const Scalar&;
-  using iterator               = StorageType::iterator;
-  using const_iterator         = StorageType::const_iterator;
-  using reverse_iterator       = StorageType::reverse_iterator;
-  using const_reverse_iterator = StorageType::const_reverse_iterator;
+  using iterator               = RowIterator;
+  using const_iterator         = ConstRowIterator;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type        = types::Difference;
   using size_type              = types::Size;
   // NOLINTEND(readability-identifier-naming)
+
+  template <typename T, bool IsConst>
+  friend class BaseMatrixView;
 
   Matrix() = default;
 
@@ -118,41 +125,41 @@ class Matrix {
 
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() {
-    return data_.begin();
+    return RowIterator{data_.begin()};
   }
   const_iterator begin() const {
-    return data_.begin();
+    return ConstRowIterator{data_.begin()};
   }
   const_iterator cbegin() const {
-    return data_.cbegin();
+    return ConstRowIterator{data_.cbegin()};
   }
   reverse_iterator rbegin() {
-    return data_.rbegin();
+    return reverse_iterator(end());
   }
   const_reverse_iterator rbegin() const {
-    return data_.rbegin();
+    return reverse_iterator(end());
   }
   const_reverse_iterator crbegin() const {
-    return data_.crbegin();
+    return reverse_iterator(cend());
   }
 
   iterator end() {
-    return data_.end();
+    return RowIterator{data_.end()};
   }
   const_iterator end() const {
-    return data_.end();
+    return ConstRowIterator{data_.end()};
   }
   const_iterator cend() const {
-    return data_.cend();
+    return ConstRowIterator{data_.cend()};
   }
   reverse_iterator rend() {
-    return data_.rend();
+    return reverse_iterator(begin());
   }
   const_reverse_iterator rend() const {
-    return data_.rend();
+    return const_reverse_iterator(begin());
   }
   const_reverse_iterator crend() const {
-    return data_.crend();
+    return const_reverse_iterator(cbegin());
   }
   // NOLINTEND(readability-identifier-naming)
 
@@ -365,6 +372,11 @@ class Matrix {
   }
 
  private:
+  // Needs to use in MatrixView to build BlockIterators.
+  StorageIterator RawBegin() {
+    return data_.begin();
+  }
+
   template <typename BinaryOp>
   Matrix& Apply(const Matrix& rhs, BinaryOp op) {
     assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
