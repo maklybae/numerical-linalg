@@ -3,6 +3,7 @@
 
 #include <compare>
 #include <iterator>
+#include <type_traits>
 
 #include "matrix.h"
 #include "types.h"
@@ -19,7 +20,7 @@ concept DefinesPolicy = requires {
 };
 
 template <typename Scalar>
-struct Defines {
+struct DefaultDefines {
   using StorageIterator = typename Matrix<Scalar>::iterator;
 
   // NOLINTBEGIN(readability-identifier-naming)
@@ -43,13 +44,13 @@ struct ConstDefines {
 };
 
 template <DefinesPolicy Defines>
-class Accessor : public Defines {
+class DefaultAccessor : public Defines {
  public:
   using typename Defines::pointer;
   using typename Defines::reference;
   using typename Defines::StorageIterator;
 
-  Accessor() = default;  // to satisfy default constructible iterator concept
+  DefaultAccessor() = default;  // to satisfy default constructible iterator concept
 
   reference operator*() const {
     return *storage_iter_;
@@ -65,13 +66,13 @@ class Accessor : public Defines {
  protected:
   StorageIterator storage_iter_;
 
-  explicit Accessor(StorageIterator iter) : storage_iter_{iter} {}
+  explicit DefaultAccessor(StorageIterator iter) : storage_iter_{iter} {}
 };
 
 template <DefinesPolicy Defines>
-class RandomAccessor : public Accessor<Defines> {
+class RandomAccessor : public DefaultAccessor<Defines> {
  public:
-  using Accessor = Accessor<Defines>;
+  using Accessor = DefaultAccessor<Defines>;
   using Accessor::Accessor;
   using typename Accessor::difference_type;
   using typename Accessor::pointer;
@@ -227,16 +228,16 @@ class RowMovingLogic : public Accessor {
 };
 
 template <typename Scalar>
-using MatrixRowIterator = RowMovingLogic<RandomAccessor<Defines<Scalar>>>;
+using MatrixRowIterator = RowMovingLogic<RandomAccessor<DefaultDefines<Scalar>>>;
 
 template <typename Scalar>
 using ConstMatrixRowIterator = RowMovingLogic<RandomAccessor<ConstDefines<Scalar>>>;
 
 template <typename Scalar>
-using MatrixBlockIterator = BlockMovingLogic<Accessor<Defines<Scalar>>>;
+using MatrixBlockIterator = BlockMovingLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
 
 template <typename Scalar>
-using ConstMatrixBlockIterator = BlockMovingLogic<Accessor<ConstDefines<Scalar>>>;
+using ConstMatrixBlockIterator = BlockMovingLogic<DefaultAccessor<ConstDefines<Scalar>>>;
 
 }  // namespace linalg::iterators
 
