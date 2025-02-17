@@ -18,6 +18,9 @@ class BaseMatrixView;
 }
 
 namespace linalg {
+enum Rows : types::Size {};
+enum Cols : types::Size {};
+
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
   using StorageType          = types::Storage<Scalar>;
@@ -53,13 +56,8 @@ class Matrix {
   // Needs to leave other in valid state.
   Matrix(Matrix&& other) noexcept : rows_{std::exchange(other.rows_, 0)}, data_{std::exchange(other.data_, {})} {}
 
-  Matrix(size_type rows, size_type cols) {
-    assert(rows > 0 && "Matrix should have at least one row");
-    assert(cols > 0 && "Matrix should have at least one col");
-
-    rows_ = rows;
-    data_.resize(ToUnderlyingSize(rows * cols));
-  }
+  // Use static cast to call private helper ctor Matrix(size_type, size_type).
+  Matrix(Rows rows, Cols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
     rows_ = ToSizeType(list.size());
@@ -377,6 +375,14 @@ class Matrix {
   }
 
  private:
+  Matrix(size_type rows, size_type cols) {
+    assert(rows > 0 && "Matrix should have at least one row");
+    assert(cols > 0 && "Matrix should have at least one col");
+
+    rows_ = rows;
+    data_.resize(ToUnderlyingSize(rows_ * cols));
+  }
+
   // Needs to use in MatrixView to build BlockIterators.
   StorageIterator RawBegin() {
     return data_.begin();
