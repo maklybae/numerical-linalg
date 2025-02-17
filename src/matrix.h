@@ -182,7 +182,7 @@ class Matrix {
 
   template <typename UnaryOp>
   Matrix& Apply(UnaryOp op) {
-    assert(!data_.empty() && "Matrix data should not be empty");
+    assert(IsValidMatrix() && "Matrix data should not be empty");
 
     std::transform(cbegin(), cend(), begin(), std::move(op));
     return *this;
@@ -191,7 +191,7 @@ class Matrix {
   template <typename UnaryOp>
   Matrix& ApplyOnDiagonal(UnaryOp op) {
     assert(Rows() == Cols() && "Matrix should be square");
-    assert(!data_.empty() && "Matrix data should not be empty");
+    assert(IsValidMatrix() && "Matrix data should not be empty");
 
     for (size_type i = 0; i < rows_; ++i) {
       (*this)(i, i) = op((*this)(i, i));
@@ -375,6 +375,10 @@ class Matrix {
   // Needs to use in MatrixView to build BlockIterators.
   StorageIterator RawBegin() {
     return data_.begin();
+  }
+
+  bool IsValidMatrix() const {
+    return !data_.empty() && rows_ > 0;
   }
 
   template <typename BinaryOp>

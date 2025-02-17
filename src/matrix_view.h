@@ -19,7 +19,7 @@ class BaseMatrixView {
   using ConstBlockIterator = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
 
   using SubmatrixRange = types::SubmatrixRange;
-  using Matrix         = std::conditional_t<IsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using MyMatrix       = std::conditional_t<IsConst, const Matrix<Scalar>, Matrix<Scalar>>;
   using Size           = types::Size;
   using Difference     = types::Difference;
   using ReturnType     = std::conditional_t<IsConst, Scalar, Scalar&>;
@@ -32,7 +32,7 @@ class BaseMatrixView {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   // NOLINTEND(readability-identifier-naming)
 
-  BaseMatrixView() = default;
+  BaseMatrixView() = delete;
 
   BaseMatrixView(const BaseMatrixView&) = delete;
 
@@ -44,8 +44,8 @@ class BaseMatrixView {
   BaseMatrixView& operator=(BaseMatrixView&&) noexcept = delete;
 
   // NOLINTNEXTLINE(google-explicit-constructor)
-  BaseMatrixView(Matrix& matrix) : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(matrix.Rows(), matrix.Cols())} {
-    // assert(!matrix.empty() && "Viewed Matrix should not be empty");
+  BaseMatrixView(MyMatrix& matrix) : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(matrix.Rows(), matrix.Cols())} {
+    assert(matrix.IsValidMatrix() && "Matrix data should not be empty");
   }
 
   // NOLINTNEXTLINE(google-explicit-constructor)
@@ -58,15 +58,15 @@ class BaseMatrixView {
     requires IsConst
       : ptr_{std::exchange(other.ptr_, nullptr)}, range_{std::exchange(other.range_, {})} {}
 
-  BaseMatrixView(Matrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
-    // assert(!matrix.empty() && "Viewed Matrix should not be empty");
+  BaseMatrixView(MyMatrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
+    assert(matrix.IsValidMatrix() && "Matrix data should not be empty");
     assert(range.RowBegin() < ptr_->Rows() && "Row begin index out of bounds");
     assert(range.RowEnd() <= ptr_->Rows() && "Row end index out of bounds");
     assert(range.ColBegin() < ptr_->Cols() && "Col begin index out of bounds");
     assert(range.ColEnd() <= ptr_->Cols() && "Col end index out of bounds");
   }
 
-  BaseMatrixView(Matrix&&) = delete;
+  BaseMatrixView(MyMatrix&&) = delete;
 
   ReturnType operator()(Size row, Size col) const {
     assert(ptr_ != nullptr && "Matrix view should not be empty");
@@ -86,27 +86,23 @@ class BaseMatrixView {
 
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() const {
-    return iterator{ptr_->RawBegin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()),
-                    range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return iterator{ptr_->RawBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColBegin(), range_.Cols(),
+                    ptr_->Cols() - range_.Cols()};
   }
 
   const_iterator cbegin() const {
-    return const_iterator{
-        ptr_->RawBegin() + static_cast<Difference>(range_.RowBegin() * ptr_->Cols() + range_.ColBegin()), range_.Cols(),
-        ptr_->Cols() - range_.Cols()};
+    return const_iterator{ptr_->RawBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColBegin(), range_.Cols(),
+                          ptr_->Cols() - range_.Cols()};
   }
 
   iterator end() const {
-    return iterator{ptr_->RawBegin() +
-                        static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
+    return iterator{ptr_->RawBegin() + (range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin(),
                     range_.Cols(), ptr_->Cols() - range_.Cols()};
   }
 
   const_iterator cend() const {
-    return const_iterator{
-        ptr_->RawBegin() +
-            static_cast<Difference>((range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin()),
-        range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return const_iterator{ptr_->RawBegin() + (range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin(),
+                          range_.Cols(), ptr_->Cols() - range_.Cols()};
   }
 
   reverse_iterator rbegin() const {
@@ -126,9 +122,13 @@ class BaseMatrixView {
   }
   // NOLINTEND(readability-identifier-naming)
 
+  // Needs to generate a ctor from non-const to const view.
+  template <typename, bool>
+  friend class BaseMatrixView;
+
  private:
-  Matrix* ptr_{};
-  SubmatrixRange range_{};
+  MyMatrix* ptr_{};
+  SubmatrixRange range_;
 };
 
 template <typename Scalar>

@@ -9,7 +9,7 @@ namespace linalg::types {
 
 class SubmatrixRange {
  public:
-  SubmatrixRange() = default;
+  SubmatrixRange() = delete;
 
   Size RowBegin() const {
     return row_begin_;
