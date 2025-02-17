@@ -48,6 +48,16 @@ class BaseMatrixView {
     // assert(!matrix.empty() && "Viewed Matrix should not be empty");
   }
 
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  BaseMatrixView(BaseMatrixView<Scalar, false>& other)
+    requires IsConst
+      : ptr_{other.ptr_}, range_{other.range_} {}
+
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  BaseMatrixView(BaseMatrixView<Scalar, false>&& other) noexcept
+    requires IsConst
+      : ptr_{std::exchange(other.ptr_, nullptr)}, range_{std::exchange(other.range_, {})} {}
+
   BaseMatrixView(Matrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
     // assert(!matrix.empty() && "Viewed Matrix should not be empty");
     assert(range.RowBegin() < ptr_->Rows() && "Row begin index out of bounds");

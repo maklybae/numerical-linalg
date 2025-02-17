@@ -103,4 +103,14 @@ TEST(MatrixViewIterator, FromBeginSize) {
   EXPECT_EQ(actual, expected);
 }
 
+TEST(MatrixView, ImplicitConstCtor) {
+  Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
+                        {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginSize(1, 3, 1, 4));
+  ConstMatrixView<double> const_view{view};
+
+  static_assert(std::is_same_v<decltype(const_view)::iterator, ConstMatrixView<double>::iterator>);
+  static_assert(std::is_same_v<decltype(const_view)::const_iterator, ConstMatrixView<double>::iterator>);
+}
+
 }  // namespace
