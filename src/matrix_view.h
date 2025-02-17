@@ -11,24 +11,28 @@
 #include "submatrix_range.h"
 #include "types.h"
 
-namespace linalg {
-template <typename Scalar, bool IsConst>
+namespace linalg::view {
+using types::ConstnessEnum;
+
+template <typename Scalar, ConstnessEnum Constness>
 class BaseMatrixView {
+  static constexpr bool kIsConst = Constness == ConstnessEnum::kConst;
+
  public:
   using BlockIterator      = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::DefaultDefines<Scalar>>>;
   using ConstBlockIterator = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
 
   using SubmatrixRange = types::SubmatrixRange;
-  using MyMatrix       = std::conditional_t<IsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using MyMatrix       = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
   using Size           = types::Size;
   using Difference     = types::Difference;
-  using ReturnType     = std::conditional_t<IsConst, Scalar, Scalar&>;
+  using ReturnType     = std::conditional_t<kIsConst, Scalar, Scalar&>;
 
   // NOLINTBEGIN(readability-identifier-naming)
-  using iterator       = std::conditional_t<IsConst, ConstBlockIterator, BlockIterator>;
+  using iterator       = std::conditional_t<kIsConst, ConstBlockIterator, BlockIterator>;
   using const_iterator = ConstBlockIterator;
   using reverse_iterator =
-      std::conditional_t<IsConst, std::reverse_iterator<iterator>, std::reverse_iterator<const_iterator>>;
+      std::conditional_t<kIsConst, std::reverse_iterator<iterator>, std::reverse_iterator<const_iterator>>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   // NOLINTEND(readability-identifier-naming)
 
@@ -49,13 +53,13 @@ class BaseMatrixView {
   }
 
   // NOLINTNEXTLINE(google-explicit-constructor)
-  BaseMatrixView(BaseMatrixView<Scalar, false>& other)
-    requires IsConst
+  BaseMatrixView(BaseMatrixView<Scalar, ConstnessEnum::kNonConst>& other)
+    requires kIsConst
       : ptr_{other.ptr_}, range_{other.range_} {}
 
   // NOLINTNEXTLINE(google-explicit-constructor)
-  BaseMatrixView(BaseMatrixView<Scalar, false>&& other) noexcept
-    requires IsConst
+  BaseMatrixView(BaseMatrixView<Scalar, ConstnessEnum::kNonConst>&& other) noexcept
+    requires kIsConst
       : ptr_{std::exchange(other.ptr_, nullptr)}, range_{std::exchange(other.range_, {})} {}
 
   BaseMatrixView(MyMatrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
@@ -123,19 +127,21 @@ class BaseMatrixView {
   // NOLINTEND(readability-identifier-naming)
 
   // Needs to generate a ctor from non-const to const view.
-  template <typename, bool>
+  template <typename, ConstnessEnum>
   friend class BaseMatrixView;
 
  private:
   MyMatrix* ptr_{};
   SubmatrixRange range_;
 };
+}  // namespace linalg::view
+
+namespace linalg {
+template <typename Scalar>
+using MatrixView = view::BaseMatrixView<Scalar, view::ConstnessEnum::kNonConst>;
 
 template <typename Scalar>
-using MatrixView = BaseMatrixView<Scalar, false>;
-
-template <typename Scalar>
-using ConstMatrixView = BaseMatrixView<Scalar, true>;
+using ConstMatrixView = view::BaseMatrixView<Scalar, view::ConstnessEnum::kConst>;
 
 }  // namespace linalg
 

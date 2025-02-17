@@ -17,9 +17,10 @@ constexpr bool kIsComplexV = IsComplex<T>::value;
 }  // namespace linalg::types::details
 
 namespace linalg::types {
-
 template <typename T>
 concept FloatingOrComplexType = std::is_floating_point_v<T> || details::kIsComplexV<T>;
+
+enum class ConstnessEnum { kConst, kNonConst };
 
 using Size       = std::ptrdiff_t;
 using Index      = std::ptrdiff_t;

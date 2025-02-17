@@ -12,6 +12,11 @@
 #include "scalars.h"
 #include "types.h"
 
+namespace linalg::view {
+template <typename, types::ConstnessEnum>
+class BaseMatrixView;
+}
+
 namespace linalg {
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
@@ -38,8 +43,8 @@ class Matrix {
   using size_type              = types::Size;
   // NOLINTEND(readability-identifier-naming)
 
-  template <typename T, bool IsConst>
-  friend class BaseMatrixView;
+  template <typename T, types::ConstnessEnum>
+  friend class view::BaseMatrixView;
 
   Matrix() = default;
 
