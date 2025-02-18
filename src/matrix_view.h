@@ -24,16 +24,19 @@ class BaseMatrixView {
 
   using SubmatrixRange = types::SubmatrixRange;
   using MyMatrix       = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
-  using Size           = types::Size;
-  using Difference     = types::Difference;
   using ReturnType     = std::conditional_t<kIsConst, Scalar, Scalar&>;
 
   // NOLINTBEGIN(readability-identifier-naming)
-  using iterator       = std::conditional_t<kIsConst, ConstBlockIterator, BlockIterator>;
-  using const_iterator = ConstBlockIterator;
+  using value_type      = Scalar;
+  using reference       = Scalar&;
+  using const_reference = const Scalar&;
+  using iterator        = std::conditional_t<kIsConst, ConstBlockIterator, BlockIterator>;
+  using const_iterator  = ConstBlockIterator;
   using reverse_iterator =
       std::conditional_t<kIsConst, std::reverse_iterator<iterator>, std::reverse_iterator<const_iterator>>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using difference_type        = types::Difference;
+  using size_type              = types::Size;
   // NOLINTEND(readability-identifier-naming)
 
   // Needs to generate a ctor from non-const to const view.
@@ -76,7 +79,7 @@ class BaseMatrixView {
 
   BaseMatrixView(MyMatrix&&) = delete;
 
-  ReturnType operator()(Size row, Size col) const {
+  ReturnType operator()(size_type row, size_type col) const {
     assert(IsValidMatrixView() && "Matrix view should not be empty");
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
@@ -84,11 +87,11 @@ class BaseMatrixView {
     return (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col);
   }
 
-  Size Rows() const {
+  size_type Rows() const {
     return range_.Rows();
   }
 
-  Size Cols() const {
+  size_type Cols() const {
     return range_.Cols();
   }
 
@@ -149,7 +152,7 @@ class BaseMatrixView {
     assert(Rows() == Cols() && "Matrix should be square");
     assert(IsValidMatrixView() && "Matrix view should not be empty");
 
-    for (Size i = 0; i < Rows(); ++i) {
+    for (size_type i = 0; i < Rows(); ++i) {
       (*this)(i, i) = op((*this)(i, i));
     }
     return *this;
@@ -159,15 +162,6 @@ class BaseMatrixView {
   bool IsValidMatrixView() const {
     return ptr_ != nullptr;
   }
-
-  // template <typename BinaryOp>
-  // BaseMatrixView& Apply(const Matrix& rhs, BinaryOp op) {
-  //   assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
-  //   assert(Cols() == rhs.Cols() && "Matrix cols should be equal");
-
-  //   std::transform(cbegin(), cend(), rhs.cbegin(), begin(), std::move(op));
-  //   return *this;
-  // }
 
   MyMatrix* ptr_{};
   SubmatrixRange range_;
