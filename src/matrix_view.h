@@ -36,6 +36,10 @@ class BaseMatrixView {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   // NOLINTEND(readability-identifier-naming)
 
+  // Needs to generate a ctor from non-const to const view.
+  template <typename, ConstnessEnum>
+  friend class BaseMatrixView;
+
   BaseMatrixView() = delete;
 
   BaseMatrixView(const BaseMatrixView&) = delete;
@@ -73,7 +77,7 @@ class BaseMatrixView {
   BaseMatrixView(MyMatrix&&) = delete;
 
   ReturnType operator()(Size row, Size col) const {
-    assert(ptr_ != nullptr && "Matrix view should not be empty");
+    assert(IsValidMatrixView() && "Matrix view should not be empty");
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
 
@@ -126,11 +130,45 @@ class BaseMatrixView {
   }
   // NOLINTEND(readability-identifier-naming)
 
-  // Needs to generate a ctor from non-const to const view.
-  template <typename, ConstnessEnum>
-  friend class BaseMatrixView;
+  // Functionals.
+
+  template <typename UnaryOp>
+  BaseMatrixView& Apply(UnaryOp op)
+    requires(!kIsConst)
+  {
+    assert(IsValidMatrixView() && "Matrix view should not be empty");
+
+    std::transform(cbegin(), cend(), begin(), std::move(op));
+    return *this;
+  }
+
+  template <typename UnaryOp>
+  BaseMatrixView& ApplyOnDiagonal(UnaryOp op)
+    requires(!kIsConst)
+  {
+    assert(Rows() == Cols() && "Matrix should be square");
+    assert(IsValidMatrixView() && "Matrix view should not be empty");
+
+    for (Size i = 0; i < Rows(); ++i) {
+      (*this)(i, i) = op((*this)(i, i));
+    }
+    return *this;
+  }
 
  private:
+  bool IsValidMatrixView() const {
+    return ptr_ != nullptr;
+  }
+
+  // template <typename BinaryOp>
+  // BaseMatrixView& Apply(const Matrix& rhs, BinaryOp op) {
+  //   assert(Rows() == rhs.Rows() && "Matrix rows should be equal");
+  //   assert(Cols() == rhs.Cols() && "Matrix cols should be equal");
+
+  //   std::transform(cbegin(), cend(), rhs.cbegin(), begin(), std::move(op));
+  //   return *this;
+  // }
+
   MyMatrix* ptr_{};
   SubmatrixRange range_;
 };

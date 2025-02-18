@@ -409,6 +409,15 @@ class Matrix {
   size_type rows_{};
   StorageType data_{};
 };
+
+template <typename BinaryOp, types::MutableMatrixType LhsT, types::MatrixType RhsT>
+LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
+  assert(lhs.Rows() == rhs.Rows() && "Matrix rows should be equal");
+  assert(lhs.Cols() == rhs.Cols() && "Matrix cols should be equal");
+
+  std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(), std::move(op));
+  return lhs;
+}
 }  // namespace linalg
 
 #endif
