@@ -4,6 +4,7 @@
 #include <complex>
 #include <concepts>
 #include <cstddef>
+#include <type_traits>
 
 namespace linalg::types::details {
 template <typename T>
@@ -11,6 +12,9 @@ struct IsComplex : std::false_type {};
 
 template <std::floating_point T>
 struct IsComplex<std::complex<T>> : std::true_type {};
+
+template <std::floating_point T>
+struct IsComplex<const std::complex<T>> : std::true_type {};
 
 template <typename T>
 constexpr bool kIsComplexV = IsComplex<T>::value;

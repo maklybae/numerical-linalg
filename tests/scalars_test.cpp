@@ -7,6 +7,9 @@
 namespace {
 
 TEST(ScalarTypesConcepts, StaticAssertions) {
+  static_assert(linalg::types::FloatingOrComplexType<const double>);
+  static_assert(linalg::types::FloatingOrComplexType<const std::complex<const double>>);
+
   static_assert(linalg::types::FloatingOrComplexType<float>);
   static_assert(linalg::types::FloatingOrComplexType<double>);
   static_assert(linalg::types::FloatingOrComplexType<long double>);
