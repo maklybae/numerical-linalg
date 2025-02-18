@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef TYPES_DETAILS_H
+#define TYPES_DETAILS_H
 
 #include <complex>
 #include <concepts>

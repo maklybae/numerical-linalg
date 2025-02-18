@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../src/types.h"
+#include "../src/types_details.h"
 
 namespace {
 

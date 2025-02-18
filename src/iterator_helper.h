@@ -5,7 +5,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include "types.h"
+#include "types_details.h"
 
 namespace linalg::iterators {
 

@@ -9,13 +9,8 @@
 #include <utility>
 
 #include "iterator_helper.h"
+#include "matrix_types.h"
 #include "scalars.h"
-#include "types.h"
-
-namespace linalg::view {
-template <typename, types::ConstnessEnum>
-class BaseMatrixView;
-}
 
 namespace linalg {
 enum Rows : types::Size {};

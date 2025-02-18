@@ -8,8 +8,8 @@
 
 #include "iterator_helper.h"
 #include "matrix.h"
+#include "matrix_types.h"
 #include "submatrix_range.h"
-#include "types.h"
 
 namespace linalg::view {
 using types::ConstnessEnum;
@@ -135,14 +135,5 @@ class BaseMatrixView {
   SubmatrixRange range_;
 };
 }  // namespace linalg::view
-
-namespace linalg {
-template <typename Scalar>
-using MatrixView = view::BaseMatrixView<Scalar, view::ConstnessEnum::kNonConst>;
-
-template <typename Scalar>
-using ConstMatrixView = view::BaseMatrixView<Scalar, view::ConstnessEnum::kConst>;
-
-}  // namespace linalg
 
 #endif

@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include "types.h"
+#include "types_details.h"
 
 namespace linalg::types {
 
