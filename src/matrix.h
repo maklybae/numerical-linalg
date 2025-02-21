@@ -172,7 +172,7 @@ class Matrix {
     }
 
     return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-                      [](Scalar a, Scalar b) { return scalar_utils::ApproxEqual<Scalar>(a, b); });
+                      [](Scalar a, Scalar b) { return scalar_utils::ApproxEqual(a, b); });
   }
 
   friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
@@ -278,26 +278,26 @@ class Matrix {
 
   // Scalar <op> Matrix or vice versa
 
-  Matrix& operator+=(Scalar scalar) {
-    return ApplyOnDiagonal([scalar](Scalar value) { return value + scalar; });
-  }
+  // Matrix& operator+=(Scalar scalar) {
+  //   return ApplyOnDiagonal([scalar](Scalar value) { return value + scalar; });
+  // }
 
-  Matrix& operator-=(Scalar scalar) {
-    return ApplyOnDiagonal([scalar](Scalar value) { return value - scalar; });
-  }
+  // Matrix& operator-=(Scalar scalar) {
+  //   return ApplyOnDiagonal([scalar](Scalar value) { return value - scalar; });
+  // }
 
-  Matrix& operator*=(Scalar scalar) {
-    return Apply([scalar](Scalar value) { return value * scalar; });
-  }
+  // Matrix& operator*=(Scalar scalar) {
+  //   return Apply([scalar](Scalar value) { return value * scalar; });
+  // }
 
-  Matrix& operator/=(Scalar scalar) {
-    return Apply([scalar](Scalar value) { return value / scalar; });
-  }
+  // Matrix& operator/=(Scalar scalar) {
+  //   return Apply([scalar](Scalar value) { return value / scalar; });
+  // }
 
-  friend Matrix operator+(Matrix lhs, Scalar scalar) {
-    lhs += scalar;
-    return lhs;
-  }
+  // friend Matrix operator+(Matrix lhs, Scalar scalar) {
+  //   lhs += scalar;
+  //   return lhs;
+  // }
 
   friend Matrix operator+(Scalar scalar, Matrix rhs) {
     rhs += scalar;
@@ -500,6 +500,20 @@ Matrix<types::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT
     }
   }
 
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator+(const MatrixT& lhs, typename MatrixT::value_type scalar) {
+  Matrix<typename MatrixT::value_type> result(lhs);
+  result += scalar;
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator+(typename MatrixT::value_type scalar, const MatrixT& rhs) {
+  Matrix<typename MatrixT::value_type> result(rhs);
+  result += scalar;
   return result;
 }
 }  // namespace linalg
