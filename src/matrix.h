@@ -299,35 +299,35 @@ class Matrix {
   //   return lhs;
   // }
 
-  friend Matrix operator+(Scalar scalar, Matrix rhs) {
-    rhs += scalar;
-    return rhs;
-  }
+  // friend Matrix operator+(Scalar scalar, Matrix rhs) {
+  //   rhs += scalar;
+  //   return rhs;
+  // }
 
-  friend Matrix operator-(Matrix lhs, Scalar scalar) {
-    lhs -= scalar;
-    return lhs;
-  }
+  // friend Matrix operator-(Matrix lhs, Scalar scalar) {
+  //   lhs -= scalar;
+  //   return lhs;
+  // }
 
-  friend Matrix operator-(Scalar scalar, Matrix rhs) {
-    rhs -= scalar;
-    return rhs;
-  }
+  // friend Matrix operator-(Scalar scalar, Matrix rhs) {
+  //   rhs -= scalar;
+  //   return rhs;
+  // }
 
-  friend Matrix operator*(Matrix lhs, Scalar scalar) {
-    lhs *= scalar;
-    return lhs;
-  }
+  // friend Matrix operator*(Matrix lhs, Scalar scalar) {
+  //   lhs *= scalar;
+  //   return lhs;
+  // }
 
-  friend Matrix operator*(Scalar scalar, Matrix rhs) {
-    rhs *= scalar;
-    return rhs;
-  }
+  // friend Matrix operator*(Scalar scalar, Matrix rhs) {
+  //   rhs *= scalar;
+  //   return rhs;
+  // }
 
-  friend Matrix operator/(Matrix lhs, Scalar scalar) {
-    lhs /= scalar;
-    return lhs;
-  }
+  // friend Matrix operator/(Matrix lhs, Scalar scalar) {
+  //   lhs /= scalar;
+  //   return lhs;
+  // // }
 
   // Static creation methods.
 
@@ -514,6 +514,34 @@ template <types::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator+(typename MatrixT::value_type scalar, const MatrixT& rhs) {
   Matrix<typename MatrixT::value_type> result(rhs);
   result += scalar;
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator-(const MatrixT& lhs, typename MatrixT::value_type scalar) {
+  Matrix<typename MatrixT::value_type> result(lhs);
+  result -= scalar;
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator*(const MatrixT& lhs, typename MatrixT::value_type scalar) {
+  Matrix<typename MatrixT::value_type> result(lhs);
+  result *= scalar;
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator*(typename MatrixT::value_type scalar, const MatrixT& rhs) {
+  Matrix<typename MatrixT::value_type> result(rhs);
+  result *= scalar;
+  return result;
+}
+
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator/(const MatrixT& lhs, typename MatrixT::value_type scalar) {
+  Matrix<typename MatrixT::value_type> result(lhs);
+  result /= scalar;
   return result;
 }
 }  // namespace linalg

@@ -504,4 +504,26 @@ TEST(MatrixArithmetic, OutOfPlaceScalarDivision) {
   EXPECT_EQ(quotient, expected);
 }
 
+TEST(MatrixArithmetic, OutOfPlaceScalarDifferentScalarAddition) {
+  Matrix<std::complex<double>> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  Matrix<std::complex<double>> expected{{3, 2, 3}, {4, 7, 6}, {7, 8, 11}};
+  auto sum = matrix + 2.0;
+
+  EXPECT_EQ(sum.Rows(), 3);
+  EXPECT_EQ(sum.Cols(), 3);
+  // EXPECT_FALSE(sum.empty());
+  EXPECT_EQ(sum, expected);
+}
+
+TEST(MatrixArithmetic, OutOfPlaceScalarDifferentScalarDivision) {
+  Matrix<std::complex<double>> matrix{{2, 4, 6}, {8, 10, 12}, {14, 16, 18}};
+  Matrix<std::complex<double>> expected{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto quotient = matrix / 2.0;
+
+  EXPECT_EQ(quotient.Rows(), 3);
+  EXPECT_EQ(quotient.Cols(), 3);
+  // EXPECT_FALSE(quotient.empty());
+  EXPECT_EQ(quotient, expected);
+}
+
 }  // namespace
