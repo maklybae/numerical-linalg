@@ -43,16 +43,18 @@ class BaseMatrixView {
   template <typename, ConstnessEnum>
   friend class BaseMatrixView;
 
-  BaseMatrixView() = delete;
-
-  BaseMatrixView(const BaseMatrixView&) = delete;
+  BaseMatrixView()                                 = default;
+  BaseMatrixView(const BaseMatrixView&)            = default;
+  BaseMatrixView& operator=(const BaseMatrixView&) = default;
 
   BaseMatrixView(BaseMatrixView&& other) noexcept
       : ptr_{std::exchange(other, nullptr)}, range_{std::exchange(other, {})} {}
-
-  // Assignment is ambiguous
-  BaseMatrixView& operator=(const BaseMatrixView&)     = delete;
-  BaseMatrixView& operator=(BaseMatrixView&&) noexcept = delete;
+  BaseMatrixView& operator=(BaseMatrixView&&) noexcept {
+    BaseMatrixView tmp = std::move(*this);
+    std::swap(ptr_, tmp.ptr_);
+    std::swap(range_, tmp.range_);
+    return *this;
+  }
 
   // NOLINTNEXTLINE(google-explicit-constructor)
   BaseMatrixView(MyMatrix& matrix) : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(matrix.Rows(), matrix.Cols())} {
@@ -160,11 +162,11 @@ class BaseMatrixView {
 
  private:
   bool IsValidMatrixView() const {
-    return ptr_ != nullptr;
+    return ptr_ != nullptr && Rows() > 0 && Cols() > 0;
   }
 
   MyMatrix* ptr_{};
-  SubmatrixRange range_;
+  SubmatrixRange range_{};
 };
 }  // namespace linalg::view
 
