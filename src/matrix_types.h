@@ -56,6 +56,9 @@ concept MatrixType = details::kIsMatrixV<Scalar>;
 
 template <typename Scalar>
 concept MutableMatrixType = details::kIsMutableMatrixV<Scalar>;
+
+template <MatrixType LhsT, MatrixType RhsT>
+using CommonValueType = std::common_type_t<typename LhsT::value_type, typename RhsT::value_type>;
 }  // namespace linalg::types
 
 #endif

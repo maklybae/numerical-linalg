@@ -11,6 +11,7 @@
 #include "iterator_helper.h"
 #include "matrix_types.h"
 #include "scalars.h"
+#include "types_details.h"
 
 namespace linalg {
 enum Rows : types::Size {};
@@ -53,6 +54,8 @@ class Matrix {
 
   // Use static cast to call private helper ctor Matrix(size_type, size_type).
   Matrix(Rows rows, Cols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
+
+  explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
     rows_ = ToSizeType(list.size());
@@ -201,77 +204,77 @@ class Matrix {
 
   // Unary operators.
 
-  Matrix operator-() {
-    Matrix result(*this);
-    result.Apply(std::negate<>{});
-    return result;
-  }
+  // Matrix operator-() {
+  //   Matrix result(*this);
+  //   result.Apply(std::negate<>{});
+  //   return result;
+  // }
 
   // Matrix <op> Matrix
 
-  Matrix& operator+=(const Matrix& rhs) {
-    return Apply(rhs, std::plus<>{});
-  }
+  // Matrix& operator+=(const Matrix& rhs) {
+  //   return Apply(rhs, std::plus<>{});
+  // }
 
-  Matrix& operator-=(const Matrix& rhs) {
-    return Apply(rhs, std::minus<>{});
-  }
+  // Matrix& operator-=(const Matrix& rhs) {
+  //   return Apply(rhs, std::minus<>{});
+  // }
 
-  Matrix& operator*=(const Matrix& rhs) {
-    *this = *this * rhs;
-    return *this;
-  }
+  // Matrix& operator*=(const Matrix& rhs) {
+  //   *this = *this * rhs;
+  //   return *this;
+  // }
 
-  friend Matrix operator+(const Matrix& lhs, const Matrix& rhs) {
-    Matrix result(lhs);
-    result += rhs;
-    return result;
-  }
-  friend Matrix operator+(Matrix&& lhs, const Matrix& rhs) {
-    lhs += rhs;
-    return lhs;
-  }
-  friend Matrix operator+(const Matrix& lhs, Matrix&& rhs) {
-    rhs += lhs;
-    return rhs;
-  }
-  friend Matrix operator+(Matrix&& lhs, Matrix&& rhs) {
-    lhs += rhs;
-    return lhs;
-  }
+  // friend Matrix operator+(const Matrix& lhs, const Matrix& rhs) {
+  //   Matrix result(lhs);
+  //   result += rhs;
+  //   return result;
+  // }
+  // friend Matrix operator+(Matrix&& lhs, const Matrix& rhs) {
+  //   lhs += rhs;
+  //   return lhs;
+  // }
+  // friend Matrix operator+(const Matrix& lhs, Matrix&& rhs) {
+  //   rhs += lhs;
+  //   return rhs;
+  // }
+  // friend Matrix operator+(Matrix&& lhs, Matrix&& rhs) {
+  //   lhs += rhs;
+  //   return lhs;
+  // }
 
-  friend Matrix operator-(const Matrix& lhs, const Matrix& rhs) {
-    Matrix result(lhs);
-    result -= rhs;
-    return result;
-  }
-  friend Matrix operator-(Matrix&& lhs, const Matrix& rhs) {
-    lhs -= rhs;
-    return lhs;
-  }
-  friend Matrix operator-(const Matrix& lhs, Matrix&& rhs) {
-    rhs -= lhs;
-    return rhs;
-  }
-  friend Matrix operator-(Matrix&& lhs, Matrix&& rhs) {
-    lhs -= rhs;
-    return lhs;
-  }
+  // friend Matrix operator-(const Matrix& lhs, const Matrix& rhs) {
+  //   Matrix result(lhs);
+  //   result -= rhs;
+  //   return result;
+  // }
+  // friend Matrix operator-(Matrix&& lhs, const Matrix& rhs) {
+  //   lhs -= rhs;
+  //   return lhs;
+  // }
+  // friend Matrix operator-(const Matrix& lhs, Matrix&& rhs) {
+  //   rhs -= lhs;
+  //   return rhs;
+  // }
+  // friend Matrix operator-(Matrix&& lhs, Matrix&& rhs) {
+  //   lhs -= rhs;
+  //   return lhs;
+  // }
 
-  friend Matrix operator*(const Matrix& lhs, const Matrix& rhs) {
-    assert(lhs.Cols() == rhs.Rows() && "Lhs cols should be equal to rhs rows");
+  // friend Matrix operator*(const Matrix& lhs, const Matrix& rhs) {
+  //   assert(lhs.Cols() == rhs.Rows() && "Lhs cols should be equal to rhs rows");
 
-    Matrix result(lhs.Rows(), rhs.Cols());
-    for (size_type i = 0; i < lhs.Rows(); ++i) {
-      for (size_type j = 0; j < rhs.Cols(); ++j) {
-        for (size_type k = 0; k < lhs.Cols(); ++k) {
-          result(i, j) += lhs(i, k) * rhs(k, j);
-        }
-      }
-    }
+  //   Matrix result(lhs.Rows(), rhs.Cols());
+  //   for (size_type i = 0; i < lhs.Rows(); ++i) {
+  //     for (size_type j = 0; j < rhs.Cols(); ++j) {
+  //       for (size_type k = 0; k < lhs.Cols(); ++k) {
+  //         result(i, j) += lhs(i, k) * rhs(k, j);
+  //       }
+  //     }
+  //   }
 
-    return result;
-  }
+  //   return result;
+  // }
 
   // Scalar <op> Matrix or vice versa
 
@@ -410,6 +413,7 @@ class Matrix {
   StorageType data_{};
 };
 
+namespace details {
 template <typename BinaryOp, types::MutableMatrixType LhsT, types::MatrixType RhsT>
 LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
   assert(lhs.Rows() == rhs.Rows() && "Matrix rows should be equal");
@@ -417,6 +421,86 @@ LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
 
   std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(), std::move(op));
   return lhs;
+}
+}  // namespace details
+
+// Unary operators.
+template <types::MatrixType MatrixT>
+Matrix<typename MatrixT::value_type> operator-(const MatrixT& matrix) {
+  Matrix<typename MatrixT::value_type> result(matrix);
+  result.Apply(std::negate<>{});
+  return result;
+}
+
+// In-place binary operators.
+template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+LhsT& operator+=(LhsT& lhs, const RhsT& rhs) {
+  return details::Apply(lhs, rhs, std::plus<>{});
+}
+
+template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+LhsT& operator-=(LhsT& lhs, const RhsT& rhs) {
+  return details::Apply(lhs, rhs, std::minus<>{});
+}
+
+template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+LhsT& operator*=(LhsT& lhs, const RhsT& rhs) {
+  lhs = lhs * rhs;
+  return lhs;
+}
+
+template <types::MutableMatrixType LhsT>
+LhsT& operator+=(LhsT& lhs, typename LhsT::value_type scalar) {
+  return lhs.ApplyOnDiagonal([scalar](typename LhsT::value_type value) { return value + scalar; });
+}
+
+template <types::MutableMatrixType LhsT>
+LhsT& operator-=(LhsT& lhs, typename LhsT::value_type scalar) {
+  return lhs.ApplyOnDiagonal([scalar](typename LhsT::value_type value) { return value - scalar; });
+}
+
+template <types::MutableMatrixType LhsT>
+LhsT& operator*=(LhsT& lhs, typename LhsT::value_type scalar) {
+  return lhs.Apply([scalar](typename LhsT::value_type value) { return value * scalar; });
+}
+
+template <types::MutableMatrixType LhsT>
+LhsT& operator/=(LhsT& lhs, typename LhsT::value_type scalar) {
+  return lhs.Apply([scalar](typename LhsT::value_type value) { return value / scalar; });
+}
+
+// Binary operators.
+template <types::MatrixType LhsT, types::MatrixType RhsT>
+Matrix<types::CommonValueType<LhsT, RhsT>> operator+(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = types::CommonValueType<LhsT, RhsT>;
+  Matrix<Scalar> result(lhs);
+  result += rhs;
+  return result;
+}
+
+template <types::MatrixType LhsT, types::MatrixType RhsT>
+Matrix<types::CommonValueType<LhsT, RhsT>> operator-(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = types::CommonValueType<LhsT, RhsT>;
+  Matrix<Scalar> result(lhs);
+  result -= rhs;
+  return result;
+}
+
+template <types::MatrixType LhsT, types::MatrixType RhsT>
+Matrix<types::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = types::CommonValueType<LhsT, RhsT>;
+  using Size   = typename LhsT::size_type;
+  Matrix<Scalar> result(Rows{lhs.Rows()}, Cols{rhs.Cols()});
+
+  for (Size i = 0; i < lhs.Rows(); ++i) {
+    for (Size j = 0; j < rhs.Cols(); ++j) {
+      for (Size k = 0; k < lhs.Cols(); ++k) {
+        result(i, j) += lhs(i, k) * rhs(k, j);
+      }
+    }
+  }
+
+  return result;
 }
 }  // namespace linalg
 
