@@ -14,9 +14,6 @@
 #include "types_details.h"
 
 namespace linalg {
-enum Rows : types::Size {};
-enum Cols : types::Size {};
-
 template <types::FloatingOrComplexType Scalar>
 class Matrix {
   using StorageType          = types::Storage<Scalar>;
@@ -52,8 +49,7 @@ class Matrix {
   // Needs to leave other in valid state.
   Matrix(Matrix&& other) noexcept : rows_{std::exchange(other.rows_, 0)}, data_{std::exchange(other.data_, {})} {}
 
-  // Use static cast to call private helper ctor Matrix(size_type, size_type).
-  Matrix(Rows rows, Cols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
+  Matrix(Rows rows, Cols cols) : Matrix(rows, cols) {}
 
   explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
 

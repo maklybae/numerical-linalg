@@ -40,4 +40,12 @@ template <typename T>
 using ConstStorageIterator = typename Storage<T>::const_iterator;
 }  // namespace linalg::types
 
+namespace linalg {
+enum Rows : types::Size {};
+enum Cols : types::Size {};
+enum RowBegin : types::Index {};
+enum RowEnd : types::Index {};
+enum ColBegin : types::Index {};
+enum ColEnd : types::Index {};
+}  // namespace linalg
 #endif
