@@ -50,22 +50,12 @@ TEST(ComplexOperations, ImplicitCast) {
 
   // auto res = c + b;
 
-  std::vector<const int> a{};
-  std::vector<const int> b(a);
-  static_assert(std::same_as<std::vector<const int>::value_type, const int>);
-
-  static_assert(linalg::detail::kIsComplexV<const std::complex<double>>);
-  static_assert(
-      std::is_same_v<std::common_type_t<std::complex<const double>, std::complex<double>>, std::complex<const double>>);
+  // static_assert(linalg::detail::kIsComplexV<const std::complex<double>>);
+  // static_assert(
+  //     std::is_same_v<std::common_type_t<std::complex<const double>, std::complex<double>>, std::complex<const
+  //     double>>);
   static_assert(
       std::is_same_v<std::common_type_t<const double, std::complex<const double>>, std::complex<const double>>);
-}
-
-TEST(ScalarUtils, ApproxEqualDifferentTypes) {
-  EXPECT_TRUE(1.0 == 1.0f);
-  EXPECT_TRUE(1.0 == 1.0L);
-  EXPECT_TRUE(1.0f == 1.0L);
-  // EXPECT_TRUE(linalg::scalar_utils::ApproxEqual(1.0, 1.0f));
 }
 
 }  // namespace

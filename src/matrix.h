@@ -17,6 +17,8 @@
 namespace linalg {
 template <detail::FloatingOrComplexType Scalar>
 class Matrix {
+
+  static_assert(!std::is_const_v<Scalar>, "Scalar type must not be const");
   using StorageType          = detail::Storage<Scalar>;
   using UnderlyingSize       = StorageType::size_type;
   using StorageIterator      = StorageType::iterator;

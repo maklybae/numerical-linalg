@@ -1,6 +1,8 @@
 #ifndef ITERATORS_H
 #define ITERATORS_H
 
+#include <limits>
+
 #include "core_types.h"
 
 namespace linalg {
@@ -9,7 +11,7 @@ namespace iterators {
 
 template <typename T>
 concept DefinesPolicy = requires {
-  typename T::StorageIterator;
+  typename T::MyStorageIterator;
   typename T::difference_type;
   typename T::value_type;
   typename T::pointer;
@@ -18,7 +20,7 @@ concept DefinesPolicy = requires {
 
 template <typename Scalar>
 struct DefaultDefines {
-  using StorageIterator = StorageIterator<Scalar>;
+  using MyStorageIterator = StorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using difference_type = Difference;
@@ -30,7 +32,7 @@ struct DefaultDefines {
 
 template <typename Scalar>
 struct ConstDefines {
-  using StorageIterator = ConstStorageIterator<Scalar>;
+  using MyStorageIterator = ConstStorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using difference_type = Difference;
@@ -43,9 +45,9 @@ struct ConstDefines {
 template <DefinesPolicy Defines>
 class DefaultAccessor : public Defines {
  public:
+  using typename Defines::MyStorageIterator;
   using typename Defines::pointer;
   using typename Defines::reference;
-  using typename Defines::StorageIterator;
 
   DefaultAccessor() = default;  // to satisfy default constructible iterator concept
 
@@ -54,16 +56,16 @@ class DefaultAccessor : public Defines {
   }
 
   pointer operator->() const {
-    if constexpr (std::is_pointer_v<StorageIterator>) {
+    if constexpr (std::is_pointer_v<MyStorageIterator>) {
       return storage_iter_;
     }
     return storage_iter_.operator->();
   }
 
  protected:
-  StorageIterator storage_iter_;
+  MyStorageIterator storage_iter_;
 
-  explicit DefaultAccessor(StorageIterator iter) : storage_iter_{iter} {}
+  explicit DefaultAccessor(MyStorageIterator iter) : storage_iter_{iter} {}
 };
 
 template <DefinesPolicy Defines>
@@ -72,9 +74,9 @@ class RandomAccessor : public DefaultAccessor<Defines> {
   using Accessor = DefaultAccessor<Defines>;
   using Accessor::Accessor;
   using typename Accessor::difference_type;
+  using typename Accessor::MyStorageIterator;
   using typename Accessor::pointer;
   using typename Accessor::reference;
-  using typename Accessor::StorageIterator;
 
   reference operator[](difference_type n) const {
     return storage_iter_[n];
@@ -91,13 +93,13 @@ class BlockMovingLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
-  using typename Accessor::StorageIterator;
+  using typename Accessor::MyStorageIterator;
 
   BlockMovingLogic() = default;
 
-  explicit BlockMovingLogic(StorageIterator iter) : Accessor{iter} {}
+  explicit BlockMovingLogic(MyStorageIterator iter) : Accessor{iter} {}
 
-  BlockMovingLogic(StorageIterator iter, Size cols, Size shift) : Accessor{iter}, cols_{cols}, shift_{shift} {}
+  BlockMovingLogic(MyStorageIterator iter, Size cols, Size shift) : Accessor{iter}, cols_{cols}, shift_{shift} {}
 
   BlockMovingLogic& operator++() {
     ++storage_iter_;
@@ -152,11 +154,11 @@ class RowMovingLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::contiguous_iterator_tag;
-  using typename Accessor::StorageIterator;
+  using typename Accessor::MyStorageIterator;
 
   RowMovingLogic() = default;
 
-  explicit RowMovingLogic(StorageIterator iter) : Accessor{iter} {}
+  explicit RowMovingLogic(MyStorageIterator iter) : Accessor{iter} {}
 
   RowMovingLogic& operator++() {
     ++storage_iter_;

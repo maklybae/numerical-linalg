@@ -18,10 +18,7 @@ using linalg::SubmatrixRange;
 
 TEST(MatrixRowIterator, IteratorConcept) {
   static_assert(std::contiguous_iterator<Matrix<double>::iterator>);
-  static_assert(std::contiguous_iterator<Matrix<const double>::iterator>);
-
   static_assert(std::contiguous_iterator<Matrix<double>::const_iterator>);
-  static_assert(std::contiguous_iterator<Matrix<const double>::const_iterator>);
 }
 
 TEST(MatrixRowIterator, IterateOverMatrix) {
@@ -44,10 +41,8 @@ TEST(MatrixRowIterator, IterateOverConstMatrix) {
 
 TEST(MatrixBlockIterator, IteratorConcept) {
   static_assert(std::bidirectional_iterator<MatrixView<double>::iterator>);
-  static_assert(std::bidirectional_iterator<MatrixView<const double>::iterator>);
 
   static_assert(std::bidirectional_iterator<ConstMatrixView<double>::iterator>);
-  static_assert(std::bidirectional_iterator<ConstMatrixView<const double>::iterator>);
 }
 
 TEST(MatrixBlockIterator, ConstMatrixView) {
