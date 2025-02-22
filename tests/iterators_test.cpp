@@ -7,7 +7,7 @@
 #include <iterator>
 #include <vector>
 
-#include "linalg"
+#include "linalg.h"
 
 namespace {
 
