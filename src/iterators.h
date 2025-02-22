@@ -143,7 +143,7 @@ class BlockMovingLogic : public Accessor {
   using Accessor::storage_iter_;
   static constexpr Size kNoColsLimit = std::numeric_limits<Size>::max();
   Size cols_{0};
-  Size shift_{0};
+  Difference shift_{0};
   Size col_count_{0};
 };
 
