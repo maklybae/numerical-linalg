@@ -10,6 +10,7 @@
 #include "matrix.h"
 #include "matrix_types.h"
 #include "submatrix_range.h"
+#include "types_details.h"
 
 namespace linalg::view {
 using types::ConstnessEnum;
@@ -57,7 +58,8 @@ class BaseMatrixView {
   }
 
   // NOLINTNEXTLINE(google-explicit-constructor)
-  BaseMatrixView(MyMatrix& matrix) : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(matrix.Rows(), matrix.Cols())} {
+  BaseMatrixView(MyMatrix& matrix)
+      : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(ERows{matrix.Rows()}, ECols{matrix.Cols()})} {
     assert(matrix.IsValidMatrix() && "Matrix data should not be empty");
   }
 

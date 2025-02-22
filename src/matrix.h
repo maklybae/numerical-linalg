@@ -49,7 +49,8 @@ class Matrix {
   // Needs to leave other in valid state.
   Matrix(Matrix&& other) noexcept : rows_{std::exchange(other.rows_, 0)}, data_{std::exchange(other.data_, {})} {}
 
-  Matrix(Rows rows, Cols cols) : Matrix(rows, cols) {}
+  // Use static cast to call private helper ctor Matrix(size_type, size_type).
+  Matrix(ERows rows, ECols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
 
   explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
 
@@ -357,7 +358,7 @@ template <types::MatrixType LhsT, types::MatrixType RhsT>
 Matrix<types::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT& rhs) {
   using Scalar = types::CommonValueType<LhsT, RhsT>;
   using Size   = typename LhsT::size_type;
-  Matrix<Scalar> result(Rows{lhs.Rows()}, Cols{rhs.Cols()});
+  Matrix<Scalar> result(ERows{lhs.Rows()}, ECols{rhs.Cols()});
 
   for (Size i = 0; i < lhs.Rows(); ++i) {
     for (Size j = 0; j < rhs.Cols(); ++j) {

@@ -33,7 +33,7 @@ TEST(MatrixCtors, MoveCtor_EmptyMatrix) {
 }
 
 TEST(MatrixCtors, SizeCtor) {
-  Matrix<double> matrix(linalg::Rows{2}, linalg::Cols{3});
+  Matrix<double> matrix(linalg::ERows{2}, linalg::ECols{3});
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
   // EXPECT_FALSE(matrix.empty());

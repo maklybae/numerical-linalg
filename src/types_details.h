@@ -41,11 +41,11 @@ using ConstStorageIterator = typename Storage<T>::const_iterator;
 }  // namespace linalg::types
 
 namespace linalg {
-enum Rows : types::Size {};
-enum Cols : types::Size {};
-enum RowBegin : types::Index {};
-enum RowEnd : types::Index {};
-enum ColBegin : types::Index {};
-enum ColEnd : types::Index {};
+enum ERows : types::Size {};
+enum ECols : types::Size {};
+enum ERowBegin : types::Index {};
+enum ERowEnd : types::Index {};
+enum EColBegin : types::Index {};
+enum EColEnd : types::Index {};
 }  // namespace linalg
 #endif

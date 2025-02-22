@@ -68,7 +68,7 @@ TEST(MatrixBlockIterator, MatrixView) {
 
 TEST(MatrixViewIterator, FullMatrixIterate) {
   Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
-  MatrixView<double> view(matrix, SubmatrixRange::FullMatrix(linalg::Rows{3}, linalg::Cols{4}));
+  MatrixView<double> view(matrix, SubmatrixRange::FullMatrix(linalg::ERows{3}, linalg::ECols{4}));
   std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   std::vector<double> actual(view.begin(), view.end());
 
@@ -78,7 +78,7 @@ TEST(MatrixViewIterator, FullMatrixIterate) {
 TEST(MatrixViewIterator, LeadingSubmatrix) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
-  MatrixView<double> view(matrix, SubmatrixRange::LeadingSubmatrix(linalg::Rows{4}, linalg::Cols{3}));
+  MatrixView<double> view(matrix, SubmatrixRange::LeadingSubmatrix(linalg::ERows{4}, linalg::ECols{3}));
   std::vector<double> expected{1, 2, 3, 6, 7, 8, 11, 12, 13, 16, 17, 18};
   std::vector<double> actual(view.begin(), view.end());
 
@@ -88,8 +88,8 @@ TEST(MatrixViewIterator, LeadingSubmatrix) {
 TEST(MatrixViewIterator, FromBeginEnd) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
-  MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::RowBegin{1}, linalg::RowEnd{3},
-                                                               linalg::ColBegin{1}, linalg::ColEnd{4}));
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::ERowBegin{1}, linalg::ERowEnd{3},
+                                                               linalg::EColBegin{1}, linalg::EColEnd{4}));
   std::vector<double> expected{7, 8, 9, 12, 13, 14};
   std::vector<double> actual(view.begin(), view.end());
 
@@ -99,8 +99,8 @@ TEST(MatrixViewIterator, FromBeginEnd) {
 TEST(MatrixViewIterator, FromBeginSize) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
-  MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::RowBegin{1}, linalg::RowEnd{3},
-                                                               linalg::ColBegin{1}, linalg::ColEnd{4}));
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginSize(linalg::ERowBegin{1}, linalg::ERows{3},
+                                                                linalg::EColBegin{1}, linalg::ECols{4}));
   std::vector<double> expected{7, 8, 9, 10, 12, 13, 14, 15, 17, 18, 19, 20};
   std::vector<double> actual(view.begin(), view.end());
 
@@ -110,8 +110,8 @@ TEST(MatrixViewIterator, FromBeginSize) {
 TEST(MatrixView, ImplicitConstCtor) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
-  MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::RowBegin{1}, linalg::RowEnd{3},
-                                                               linalg::ColBegin{1}, linalg::ColEnd{4}));
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::ERowBegin{1}, linalg::ERowEnd{3},
+                                                               linalg::EColBegin{1}, linalg::EColEnd{4}));
   ConstMatrixView<double> const_view{view};
 
   static_assert(std::is_same_v<decltype(const_view)::iterator, ConstMatrixView<double>::iterator>);
@@ -123,7 +123,7 @@ TEST(MatrixView, TemplateApply) {
                                        {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
   MatrixView<std::complex<double>> lhs_view(
       lhs_mat,
-      SubmatrixRange::FromBeginSize(linalg::RowBegin{0}, linalg::Rows{2}, linalg::ColBegin{0}, linalg::Cols{2}));
+      SubmatrixRange::FromBeginSize(linalg::ERowBegin{0}, linalg::ERows{2}, linalg::EColBegin{0}, linalg::ECols{2}));
   Matrix<double> rhs_mat{{1, 2}, {3, 4}};
   linalg::details::Apply(lhs_view, rhs_mat, std::plus<>());
 

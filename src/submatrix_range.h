@@ -39,7 +39,7 @@ class SubmatrixRange {
     return col_end_ - col_begin_;
   }
 
-  static SubmatrixRange LeadingSubmatrix(enum Rows rows, enum Cols cols) {
+  static SubmatrixRange LeadingSubmatrix(ERows rows, ECols cols) {
     return SubmatrixRange{0, rows, 0, cols};
   }
 
@@ -47,17 +47,15 @@ class SubmatrixRange {
     return SubmatrixRange{0, size, 0, size};
   }
 
-  static SubmatrixRange FullMatrix(enum Rows rows, enum Cols cols) {
+  static SubmatrixRange FullMatrix(ERows rows, ECols cols) {
     return SubmatrixRange{0, rows, 0, cols};
   }
 
-  static SubmatrixRange FromBeginEnd(enum RowBegin row_begin, enum RowEnd row_end, enum ColBegin col_begin,
-                                     enum ColEnd col_end) {
+  static SubmatrixRange FromBeginEnd(ERowBegin row_begin, ERowEnd row_end, EColBegin col_begin, EColEnd col_end) {
     return SubmatrixRange{row_begin, row_end, col_begin, col_end};
   }
 
-  static SubmatrixRange FromBeginSize(enum RowBegin row_begin, enum Rows rows, enum ColBegin col_begin,
-                                      enum Cols cols) {
+  static SubmatrixRange FromBeginSize(ERowBegin row_begin, ERows rows, EColBegin col_begin, ECols cols) {
     return SubmatrixRange{row_begin, static_cast<Size>(row_begin) + rows, col_begin,
                           static_cast<Size>(col_begin) + cols};
   }
