@@ -1,13 +1,11 @@
-#ifndef ITERATOR_HELPER_H
-#define ITERATOR_HELPER_H
+#ifndef ITERATORS_H
+#define ITERATORS_H
 
-#include <compare>
-#include <iterator>
-#include <type_traits>
+#include "core_types.h"
 
-#include "types_details.h"
-
-namespace linalg::iterators {
+namespace linalg {
+namespace detail {
+namespace iterators {
 
 template <typename T>
 concept DefinesPolicy = requires {
@@ -20,10 +18,10 @@ concept DefinesPolicy = requires {
 
 template <typename Scalar>
 struct DefaultDefines {
-  using StorageIterator = typename types::StorageIterator<Scalar>;
+  using StorageIterator = StorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
-  using difference_type = types::Difference;
+  using difference_type = Difference;
   using value_type      = std::remove_cv_t<Scalar>;
   using pointer         = value_type*;
   using reference       = value_type&;
@@ -32,10 +30,10 @@ struct DefaultDefines {
 
 template <typename Scalar>
 struct ConstDefines {
-  using StorageIterator = typename types::ConstStorageIterator<Scalar>;
+  using StorageIterator = ConstStorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
-  using difference_type = types::Difference;
+  using difference_type = Difference;
   using value_type      = std::remove_cv_t<Scalar>;
   using pointer         = const value_type*;
   using reference       = const value_type&;
@@ -94,7 +92,6 @@ class BlockMovingLogic : public Accessor {
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
   using typename Accessor::StorageIterator;
-  using Size = types::Size;
 
   BlockMovingLogic() = default;
 
@@ -156,8 +153,6 @@ class RowMovingLogic : public Accessor {
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::contiguous_iterator_tag;
   using typename Accessor::StorageIterator;
-  using Size       = types::Size;
-  using Difference = types::Difference;
 
   RowMovingLogic() = default;
 
@@ -229,6 +224,9 @@ class RowMovingLogic : public Accessor {
  private:
   using Accessor::storage_iter_;
 };
-}  // namespace linalg::iterators
 
-#endif
+}  // namespace iterators
+}  // namespace detail
+}  // namespace linalg
+
+#endif  // ITERATORS_H

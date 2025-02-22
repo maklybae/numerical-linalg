@@ -3,9 +3,9 @@
 
 #include <cassert>
 
-#include "types_details.h"
+#include "core_types.h"
 
-namespace linalg::types {
+namespace linalg {
 
 class SubmatrixRange {
  public:
@@ -73,6 +73,6 @@ class SubmatrixRange {
   Index col_end_{};
 };
 
-}  // namespace linalg::types
+}  // namespace linalg
 
 #endif

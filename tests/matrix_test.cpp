@@ -2,12 +2,12 @@
 
 #include <gtest/gtest.h>
 
-#include "../src/types_details.h"
+#include "linalg"
 
 namespace {
 
 using linalg::Matrix;
-using linalg::types::Size;
+using linalg::Size;
 
 TEST(MatrixCtors, DefaultCtor) {
   Matrix<double> matrix;

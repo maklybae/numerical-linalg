@@ -1,27 +1,25 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MATRIX_TYPES_H
+#define MATRIX_TYPES_H
 
-#include <type_traits>
-
-#include "types_details.h"
-
-namespace linalg::view {
-template <typename Scalar, types::ConstnessEnum>
-class BaseMatrixView;
-}
+#include "core_types.h"
+#include "scalar_types.h"
 
 namespace linalg {
-template <types::FloatingOrComplexType Scalar>
+
+template <detail::FloatingOrComplexType Scalar>
 class Matrix;
 
-template <typename Scalar>
-using MatrixView = view::BaseMatrixView<Scalar, types::ConstnessEnum::kNonConst>;
+namespace detail {
+
+template <typename Scalar, ConstnessEnum Constness>
+class BaseMatrixView;
 
 template <typename Scalar>
-using ConstMatrixView = view::BaseMatrixView<Scalar, types::ConstnessEnum::kConst>;
-}  // namespace linalg
+using MatrixView = BaseMatrixView<Scalar, ConstnessEnum::kNonConst>;
 
-namespace linalg::types::details {
+template <typename Scalar>
+using ConstMatrixView = BaseMatrixView<Scalar, ConstnessEnum::kConst>;
+
 template <typename Scalar>
 struct IsMatrix : std::false_type {};
 
@@ -48,17 +46,17 @@ struct IsMutableMatrix<MatrixView<Scalar>> : std::true_type {};
 
 template <typename Scalar>
 constexpr bool kIsMutableMatrixV = IsMutableMatrix<Scalar>::value;
-}  // namespace linalg::types::details
-
-namespace linalg::types {
-template <typename Scalar>
-concept MatrixType = details::kIsMatrixV<Scalar>;
 
 template <typename Scalar>
-concept MutableMatrixType = details::kIsMutableMatrixV<Scalar>;
+concept MatrixType = kIsMatrixV<Scalar>;
+
+template <typename Scalar>
+concept MutableMatrixType = kIsMutableMatrixV<Scalar>;
 
 template <MatrixType LhsT, MatrixType RhsT>
 using CommonValueType = std::common_type_t<typename LhsT::value_type, typename RhsT::value_type>;
-}  // namespace linalg::types
+
+}  // namespace detail
+}  // namespace linalg
 
 #endif

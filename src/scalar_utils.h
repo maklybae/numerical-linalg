@@ -1,10 +1,10 @@
-#ifndef SCALARS_H
-#define SCALARS_H
+#ifndef SCALARS_UTILS_H
+#define SCALARS_UTILS_H
 
 #include <complex>
 #include <concepts>
 
-namespace linalg::scalar_utils {
+namespace linalg::detail {
 
 template <std::floating_point T>
 bool ApproxEqual(T lhs, T rhs) {
@@ -25,6 +25,6 @@ template <std::floating_point T>
 bool ApproxEqual(std::complex<T> lhs, T rhs) {
   return ApproxEqual(lhs.real(), rhs) && ApproxEqual(lhs.imag(), 0.0);
 }
-}  // namespace linalg::scalar_utils
+}  // namespace linalg::detail
 
-#endif
+#endif  // SCALARS_UTILS_H

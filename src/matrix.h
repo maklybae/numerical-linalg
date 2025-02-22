@@ -8,24 +8,25 @@
 #include <type_traits>
 #include <utility>
 
-#include "iterator_helper.h"
+#include "core_types.h"
+#include "iterators.h"
 #include "matrix_types.h"
-#include "scalars.h"
-#include "types_details.h"
+#include "scalar_types.h"
+#include "scalar_utils.h"
 
 namespace linalg {
-template <types::FloatingOrComplexType Scalar>
+template <detail::FloatingOrComplexType Scalar>
 class Matrix {
-  using StorageType          = types::Storage<Scalar>;
-  using UnderlyingSize       = typename StorageType::size_type;
-  using StorageIterator      = typename StorageType::iterator;
-  using ConstStorageIterator = typename StorageType::const_iterator;
+  using StorageType          = detail::Storage<Scalar>;
+  using UnderlyingSize       = StorageType::size_type;
+  using StorageIterator      = StorageType::iterator;
+  using ConstStorageIterator = StorageType::const_iterator;
 
  public:
-  using Index = types::Index;
-
-  using RowIterator      = iterators::RowMovingLogic<iterators::RandomAccessor<iterators::DefaultDefines<Scalar>>>;
-  using ConstRowIterator = iterators::RowMovingLogic<iterators::RandomAccessor<iterators::ConstDefines<Scalar>>>;
+  using RowIterator =
+      detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::DefaultDefines<Scalar>>>;
+  using ConstRowIterator =
+      detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::ConstDefines<Scalar>>>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
@@ -35,12 +36,12 @@ class Matrix {
   using const_iterator         = ConstRowIterator;
   using reverse_iterator       = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using difference_type        = types::Difference;
-  using size_type              = types::Size;
+  using difference_type        = Difference;
+  using size_type              = Size;
   // NOLINTEND(readability-identifier-naming)
 
-  template <typename T, types::ConstnessEnum>
-  friend class view::BaseMatrixView;
+  template <typename T, detail::ConstnessEnum>
+  friend class detail::BaseMatrixView;
 
   Matrix() = default;
 
@@ -52,7 +53,7 @@ class Matrix {
   // Use static cast to call private helper ctor Matrix(size_type, size_type).
   Matrix(ERows rows, ECols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
 
-  explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
+  // explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
     rows_ = ToSizeType(list.size());
@@ -169,7 +170,7 @@ class Matrix {
     }
 
     return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-                      [](Scalar a, Scalar b) { return scalar_utils::ApproxEqual(a, b); });
+                      [](Scalar a, Scalar b) { return detail::ApproxEqual(a, b); });
   }
 
   friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
@@ -281,8 +282,8 @@ class Matrix {
   StorageType data_{};
 };
 
-namespace details {
-template <typename BinaryOp, types::MutableMatrixType LhsT, types::MatrixType RhsT>
+namespace detail {
+template <typename BinaryOp, MutableMatrixType LhsT, MatrixType RhsT>
 LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
   assert(lhs.Rows() == rhs.Rows() && "Matrix rows should be equal");
   assert(lhs.Cols() == rhs.Cols() && "Matrix cols should be equal");
@@ -290,10 +291,10 @@ LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
   std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(), std::move(op));
   return lhs;
 }
-}  // namespace details
+}  // namespace detail
 
 // Unary operators.
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator-(const MatrixT& matrix) {
   Matrix<typename MatrixT::value_type> result(matrix);
   result.Apply(std::negate<>{});
@@ -301,63 +302,63 @@ Matrix<typename MatrixT::value_type> operator-(const MatrixT& matrix) {
 }
 
 // In-place binary operators.
-template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+template <detail::MutableMatrixType LhsT, detail::MatrixType RhsT>
 LhsT& operator+=(LhsT& lhs, const RhsT& rhs) {
-  return details::Apply(lhs, rhs, std::plus<>{});
+  return detail::Apply(lhs, rhs, std::plus<>{});
 }
 
-template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+template <detail::MutableMatrixType LhsT, detail::MatrixType RhsT>
 LhsT& operator-=(LhsT& lhs, const RhsT& rhs) {
-  return details::Apply(lhs, rhs, std::minus<>{});
+  return detail::Apply(lhs, rhs, std::minus<>{});
 }
 
-template <types::MutableMatrixType LhsT, types::MatrixType RhsT>
+template <detail::MutableMatrixType LhsT, detail::MatrixType RhsT>
 LhsT& operator*=(LhsT& lhs, const RhsT& rhs) {
   lhs = lhs * rhs;
   return lhs;
 }
 
-template <types::MutableMatrixType LhsT>
+template <detail::MutableMatrixType LhsT>
 LhsT& operator+=(LhsT& lhs, typename LhsT::value_type scalar) {
   return lhs.ApplyOnDiagonal([scalar](typename LhsT::value_type value) { return value + scalar; });
 }
 
-template <types::MutableMatrixType LhsT>
+template <detail::MutableMatrixType LhsT>
 LhsT& operator-=(LhsT& lhs, typename LhsT::value_type scalar) {
   return lhs.ApplyOnDiagonal([scalar](typename LhsT::value_type value) { return value - scalar; });
 }
 
-template <types::MutableMatrixType LhsT>
+template <detail::MutableMatrixType LhsT>
 LhsT& operator*=(LhsT& lhs, typename LhsT::value_type scalar) {
   return lhs.Apply([scalar](typename LhsT::value_type value) { return value * scalar; });
 }
 
-template <types::MutableMatrixType LhsT>
+template <detail::MutableMatrixType LhsT>
 LhsT& operator/=(LhsT& lhs, typename LhsT::value_type scalar) {
   return lhs.Apply([scalar](typename LhsT::value_type value) { return value / scalar; });
 }
 
 // Binary operators.
-template <types::MatrixType LhsT, types::MatrixType RhsT>
-Matrix<types::CommonValueType<LhsT, RhsT>> operator+(const LhsT& lhs, const RhsT& rhs) {
-  using Scalar = types::CommonValueType<LhsT, RhsT>;
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+Matrix<detail::CommonValueType<LhsT, RhsT>> operator+(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = detail::CommonValueType<LhsT, RhsT>;
   Matrix<Scalar> result(lhs);
   result += rhs;
   return result;
 }
 
-template <types::MatrixType LhsT, types::MatrixType RhsT>
-Matrix<types::CommonValueType<LhsT, RhsT>> operator-(const LhsT& lhs, const RhsT& rhs) {
-  using Scalar = types::CommonValueType<LhsT, RhsT>;
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+Matrix<detail::CommonValueType<LhsT, RhsT>> operator-(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = detail::CommonValueType<LhsT, RhsT>;
   Matrix<Scalar> result(lhs);
   result -= rhs;
   return result;
 }
 
-template <types::MatrixType LhsT, types::MatrixType RhsT>
-Matrix<types::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT& rhs) {
-  using Scalar = types::CommonValueType<LhsT, RhsT>;
-  using Size   = typename LhsT::size_type;
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+Matrix<detail::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT& rhs) {
+  using Scalar = detail::CommonValueType<LhsT, RhsT>;
+
   Matrix<Scalar> result(ERows{lhs.Rows()}, ECols{rhs.Cols()});
 
   for (Size i = 0; i < lhs.Rows(); ++i) {
@@ -371,47 +372,48 @@ Matrix<types::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const RhsT
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator+(const MatrixT& lhs, typename MatrixT::value_type scalar) {
   Matrix<typename MatrixT::value_type> result(lhs);
   result += scalar;
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator+(typename MatrixT::value_type scalar, const MatrixT& rhs) {
   Matrix<typename MatrixT::value_type> result(rhs);
   result += scalar;
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator-(const MatrixT& lhs, typename MatrixT::value_type scalar) {
   Matrix<typename MatrixT::value_type> result(lhs);
   result -= scalar;
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator*(const MatrixT& lhs, typename MatrixT::value_type scalar) {
   Matrix<typename MatrixT::value_type> result(lhs);
   result *= scalar;
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator*(typename MatrixT::value_type scalar, const MatrixT& rhs) {
   Matrix<typename MatrixT::value_type> result(rhs);
   result *= scalar;
   return result;
 }
 
-template <types::MatrixType MatrixT>
+template <detail::MatrixType MatrixT>
 Matrix<typename MatrixT::value_type> operator/(const MatrixT& lhs, typename MatrixT::value_type scalar) {
   Matrix<typename MatrixT::value_type> result(lhs);
   result /= scalar;
   return result;
 }
+
 }  // namespace linalg
 
-#endif
+#endif  // MATRIX_H

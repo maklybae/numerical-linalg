@@ -1,3 +1,5 @@
+#include "../src/iterators.h"
+
 #include <gtest/gtest.h>
 
 #include <complex>
@@ -5,16 +7,14 @@
 #include <iterator>
 #include <vector>
 
-#include "../src/iterator_helper.h"
-#include "../src/matrix.h"
-#include "../src/matrix_view.h"
+#include "linalg"
 
 namespace {
 
 using linalg::ConstMatrixView;
 using linalg::Matrix;
 using linalg::MatrixView;
-using linalg::types::SubmatrixRange;
+using linalg::SubmatrixRange;
 
 TEST(MatrixRowIterator, IteratorConcept) {
   static_assert(std::contiguous_iterator<Matrix<double>::iterator>);
@@ -125,7 +125,7 @@ TEST(MatrixView, TemplateApply) {
       lhs_mat,
       SubmatrixRange::FromBeginSize(linalg::ERowBegin{0}, linalg::ERows{2}, linalg::EColBegin{0}, linalg::ECols{2}));
   Matrix<double> rhs_mat{{1, 2}, {3, 4}};
-  linalg::details::Apply(lhs_view, rhs_mat, std::plus<>());
+  linalg::detail::Apply(lhs_view, rhs_mat, std::plus<>());
 
   std::cout << lhs_mat(0, 0) << lhs_mat(0, 1) << lhs_mat(0, 2) << lhs_mat(0, 3) << lhs_mat(0, 4) << lhs_mat(1, 0)
             << lhs_mat(1, 1) << lhs_mat(1, 2) << lhs_mat(1, 3) << lhs_mat(1, 4) << lhs_mat(2, 0) << lhs_mat(2, 1)
