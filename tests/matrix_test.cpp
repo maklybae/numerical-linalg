@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "linalg"
+#include "linalg.h"
 
 namespace {
 
