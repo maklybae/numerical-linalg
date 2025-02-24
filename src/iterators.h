@@ -92,20 +92,18 @@ class RandomAccessor : public DefaultAccessor<Defines> {
 // TODO: Add AccessorPolicy concept
 
 template <typename Accessor>
-class BlockMovingLogic : public Accessor {
+class RowBlockMovingLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
   using typename Accessor::MyStorageIterator;
 
-  BlockMovingLogic() = default;
+  RowBlockMovingLogic() = default;
 
-  explicit BlockMovingLogic(MyStorageIterator iter) : Accessor{iter} {}
-
-  BlockMovingLogic(MyStorageIterator iter, Size step_size, Size max_step, Difference shift)
+  RowBlockMovingLogic(MyStorageIterator iter, Size step_size, Size max_step, Difference shift)
       : Accessor{iter}, step_size_{step_size}, max_step_{max_step}, shift_{shift} {}
 
-  BlockMovingLogic& operator++() {
+  RowBlockMovingLogic& operator++() {
     storage_iter_ += step_size_;
     ++cur_step_;
     if (cur_step_ == max_step_) {
@@ -115,13 +113,13 @@ class BlockMovingLogic : public Accessor {
     return *this;
   }
 
-  BlockMovingLogic operator++(int) {
-    BlockMovingLogic tmp = *this;
+  RowBlockMovingLogic operator++(int) {
+    RowBlockMovingLogic tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  BlockMovingLogic& operator--() {
+  RowBlockMovingLogic& operator--() {
     storage_iter_ -= step_size_;
     --cur_step_;
     if (cur_step_ == -1) {
@@ -131,17 +129,17 @@ class BlockMovingLogic : public Accessor {
     return *this;
   }
 
-  BlockMovingLogic operator--(int) {
-    BlockMovingLogic tmp = *this;
+  RowBlockMovingLogic operator--(int) {
+    RowBlockMovingLogic tmp = *this;
     --(*this);
     return tmp;
   }
 
-  friend bool operator==(const BlockMovingLogic& lhs, const BlockMovingLogic& rhs) {
+  friend bool operator==(const RowBlockMovingLogic& lhs, const RowBlockMovingLogic& rhs) {
     return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
-  friend bool operator!=(const BlockMovingLogic& lhs, const BlockMovingLogic& rhs) {
+  friend bool operator!=(const RowBlockMovingLogic& lhs, const RowBlockMovingLogic& rhs) {
     return !(lhs == rhs);
   }
 
@@ -151,6 +149,74 @@ class BlockMovingLogic : public Accessor {
   Size cur_step_{0};
   Size max_step_{0};
   Difference shift_{0};
+};
+
+template <typename Accessor>
+class ColBlockMovingLogic : public Accessor {
+
+ public:
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  using iterator_category = std::bidirectional_iterator_tag;
+  using typename Accessor::MyStorageIterator;
+
+  ColBlockMovingLogic() = default;
+
+  ColBlockMovingLogic(MyStorageIterator iter, MyStorageIterator threshold, Size step_size, Size max_step,
+                      Difference shift, Size cur_step = 0)
+      : Accessor{iter}
+      , threshold_{threshold}
+      , step_size_{step_size}
+      , max_step_{max_step}
+      , shift_{shift}
+      , cur_step_{cur_step} {}
+
+  ColBlockMovingLogic& operator++() {
+    storage_iter_ += step_size_;
+    ++cur_step_;
+    if (storage_iter_ < threshold_ && cur_step_ >= max_step_) {
+      cur_step_ = 0;
+      storage_iter_ += shift_;
+    }
+    return *this;
+  }
+
+  ColBlockMovingLogic operator++(int) {
+    RowBlockMovingLogic tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+
+  ColBlockMovingLogic& operator--() {
+    storage_iter_ -= step_size_;
+    --cur_step_;
+    if (cur_step_ < 0) {
+      cur_step_ = max_step_ - 1;
+      storage_iter_ -= shift_;
+    }
+    return *this;
+  }
+
+  ColBlockMovingLogic operator--(int) {
+    RowBlockMovingLogic tmp = *this;
+    --(*this);
+    return tmp;
+  }
+
+  friend bool operator==(const ColBlockMovingLogic& lhs, const ColBlockMovingLogic& rhs) {
+    return lhs.storage_iter_ == rhs.storage_iter_;
+  }
+
+  friend bool operator!=(const ColBlockMovingLogic& lhs, const ColBlockMovingLogic& rhs) {
+    return !(lhs == rhs);
+  }
+
+ private:
+  using Accessor::storage_iter_;
+  MyStorageIterator threshold_{};
+  Size step_size_{0};
+  Size max_step_{0};
+  Difference shift_{0};
+  Size cur_step_{0};
 };
 
 template <typename Accessor>

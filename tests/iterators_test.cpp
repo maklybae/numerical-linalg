@@ -19,6 +19,12 @@ using linalg::SubmatrixRange;
 TEST(MatrixRowIterator, IteratorConcept) {
   static_assert(std::contiguous_iterator<Matrix<double>::iterator>);
   static_assert(std::contiguous_iterator<Matrix<double>::const_iterator>);
+  static_assert(std::bidirectional_iterator<Matrix<double>::ColIterator>);
+  static_assert(std::bidirectional_iterator<Matrix<double>::ConstColIterator>);
+
+  static_assert(std::bidirectional_iterator<MatrixView<double>::iterator>);
+  static_assert(std::bidirectional_iterator<ConstMatrixView<double>::iterator>);
+  // TODO: Add separate assertions for MatrixView col/row iterators.
 }
 
 TEST(MatrixRowIterator, IterateOverMatrix) {
@@ -66,6 +72,39 @@ TEST(MatrixViewIterator, FullMatrixIterate) {
   MatrixView<double> view(matrix, SubmatrixRange::FullMatrix(linalg::ERows{3}, linalg::ECols{4}));
   std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   std::vector<double> actual(view.begin(), view.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixIterator, FullMatrixIterate) {
+  Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
+  Matrix<double>::iterator iter{matrix.begin()};
+  std::vector<double> expected{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  std::vector<double> actual(iter, iter + 12);
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixIterator, FullMatrixColIterate) {
+  Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
+  std::vector<double> expected{1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12};
+  std::vector<double> actual(matrix.ColWiseBegin(), matrix.ColWiseEnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixIterator, FullMatrixConstColIterate) {
+  const Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
+  std::vector<double> expected{1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12};
+  std::vector<double> actual(matrix.ColWiseCBegin(), matrix.ColWiseCEnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixIterator, FullMatrixReverseColIterate) {
+  Matrix<double> matrix{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
+  std::vector<double> expected{12, 8, 4, 11, 7, 3, 10, 6, 2, 9, 5, 1};
+  std::vector<double> actual(matrix.ColWiseRBegin(), matrix.ColWiseREnd());
 
   EXPECT_EQ(actual, expected);
 }
@@ -154,11 +193,6 @@ TEST(MatrixView, TemplateApply) {
       SubmatrixRange::FromBeginSize(linalg::ERowBegin{0}, linalg::ERows{2}, linalg::EColBegin{0}, linalg::ECols{2}));
   Matrix<double> rhs_mat{{1, 2}, {3, 4}};
   linalg::detail::Apply(lhs_view, rhs_mat, std::plus<>());
-
-  // std::cout << lhs_mat(0, 0) << lhs_mat(0, 1) << lhs_mat(0, 2) << lhs_mat(0, 3) << lhs_mat(0, 4) << lhs_mat(1, 0)
-  //           << lhs_mat(1, 1) << lhs_mat(1, 2) << lhs_mat(1, 3) << lhs_mat(1, 4) << lhs_mat(2, 0) << lhs_mat(2, 1)
-  //           << lhs_mat(2, 2) << lhs_mat(2, 3) << lhs_mat(2, 4) << lhs_mat(3, 0) << lhs_mat(3, 1) << lhs_mat(3, 2)
-  //           << std::endl;
 }
 
 }  // namespace
