@@ -17,18 +17,24 @@
 namespace linalg {
 template <detail::FloatingOrComplexType Scalar>
 class Matrix {
-
   static_assert(!std::is_const_v<Scalar>, "Scalar type must not be const");
+
   using StorageType          = detail::Storage<Scalar>;
   using UnderlyingSize       = StorageType::size_type;
-  using StorageIterator      = StorageType::iterator;
-  using ConstStorageIterator = StorageType::const_iterator;
+  using StorageIterator      = detail::StorageIterator<Scalar>;
+  using ConstStorageIterator = detail::ConstStorageIterator<Scalar>;
 
  public:
   using RowIterator =
       detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::DefaultDefines<Scalar>>>;
   using ConstRowIterator =
       detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::ConstDefines<Scalar>>>;
+  using ColIterator = detail::iterators::BlockMovingLogic<
+      detail::iterators::DefaultAccessor<detail::iterators::DefaultDefines<Scalar>>>;
+  using ConstColIterator =
+      detail::iterators::BlockMovingLogic<detail::iterators::DefaultAccessor<detail::iterators::ConstDefines<Scalar>>>;
+  using RColIterator  = std::reverse_iterator<ColIterator>;
+  using CRColIterator = std::reverse_iterator<ConstColIterator>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
@@ -124,6 +130,89 @@ class Matrix {
 
   // Iterators.
 
+  // Row-wise iterators. Satisfy ContiguousIterator.
+  iterator RowWiseBegin() {
+    return RowIterator{data_.begin()};
+  }
+  const_iterator RowWiseBegin() const {
+    return ConstRowIterator{data_.begin()};
+  }
+  const_iterator RowWiseCBegin() const {
+    return ConstRowIterator{data_.cbegin()};
+  }
+
+  iterator RowWiseEnd() {
+    return RowIterator{data_.end()};
+  }
+  const_iterator RowWiseEnd() const {
+    return ConstRowIterator{data_.end()};
+  }
+  const_iterator RowWiseCEnd() const {
+    return ConstRowIterator{data_.cend()};
+  }
+
+  reverse_iterator RowWiseRBegin() {
+    return reverse_iterator(RowWiseEnd());
+  }
+  const_reverse_iterator RowWiseRBegin() const {
+    return const_reverse_iterator(RowWiseEnd());
+  }
+  const_reverse_iterator RowWiseCRBegin() const {
+    return const_reverse_iterator(RowWiseCEnd());
+  }
+
+  reverse_iterator RowWiseREnd() {
+    return reverse_iterator(RowWiseBegin());
+  }
+  const_reverse_iterator RowWiseREnd() const {
+    return const_reverse_iterator(RowWiseBegin());
+  }
+  const_reverse_iterator RowWiseCREnd() const {
+    return const_reverse_iterator(RowWiseCBegin());
+  }
+
+  // Col-wise iterators. Satisfy BidirectionalIterator.
+  ColIterator ColWiseBegin() {
+    return ColIterator{data_.begin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+  ConstColIterator ColWiseBegin() const {
+    return ConstColIterator{data_.begin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+  ConstColIterator ColWiseCBegin() const {
+    return ConstColIterator{data_.cbegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+
+  ColIterator ColWiseEnd() {
+    return ColIterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+  ConstColIterator ColWiseEnd() const {
+    return ConstColIterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+  ConstColIterator ColWiseCEnd() const {
+    return ConstColIterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
+  }
+
+  RColIterator ColWiseRBegin() {
+    return reverse_iterator(ColWiseEnd());
+  }
+  CRColIterator ColWiseRBegin() const {
+    return const_reverse_iterator(ColWiseEnd());
+  }
+  CRColIterator ColWiseCRBegin() const {
+    return const_reverse_iterator(ColWiseCEnd());
+  }
+
+  RColIterator ColWiseREnd() {
+    return reverse_iterator(ColWiseBegin());
+  }
+  CRColIterator ColWiseREnd() const {
+    return const_reverse_iterator(ColWiseBegin());
+  }
+  CRColIterator ColWiseCREnd() const {
+    return const_reverse_iterator(ColWiseCBegin());
+  }
+
+  // STL-like iterators.
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() {
     return RowIterator{data_.begin()};
@@ -133,15 +222,6 @@ class Matrix {
   }
   const_iterator cbegin() const {
     return ConstRowIterator{data_.cbegin()};
-  }
-  reverse_iterator rbegin() {
-    return reverse_iterator(end());
-  }
-  const_reverse_iterator rbegin() const {
-    return reverse_iterator(end());
-  }
-  const_reverse_iterator crbegin() const {
-    return reverse_iterator(cend());
   }
 
   iterator end() {
@@ -153,6 +233,17 @@ class Matrix {
   const_iterator cend() const {
     return ConstRowIterator{data_.cend()};
   }
+
+  reverse_iterator rbegin() {
+    return reverse_iterator(end());
+  }
+  const_reverse_iterator rbegin() const {
+    return reverse_iterator(end());
+  }
+  const_reverse_iterator crbegin() const {
+    return reverse_iterator(cend());
+  }
+
   reverse_iterator rend() {
     return reverse_iterator(begin());
   }
@@ -256,6 +347,9 @@ class Matrix {
   StorageIterator StorageIteratorBegin() {
     return data_.begin();
   }
+  ConstStorageIterator StorageIteratorBegin() const {
+    return data_.cbegin();
+  }
 
   bool IsValidMatrix() const {
     return !data_.empty() && rows_ > 0;
@@ -268,6 +362,25 @@ class Matrix {
 
     std::transform(cbegin(), cend(), rhs.cbegin(), begin(), std::move(op));
     return *this;
+  }
+
+  StorageIterator StorageIteratorColWiseEnd() {
+    return StorageIteratorBegin() + Cols();
+  }
+  ConstStorageIterator StorageIteratorColWiseEnd() const {
+    return StorageIteratorBegin() + Cols();
+  }
+
+  Size ColWiseStepSize() const {
+    return Cols();
+  }
+
+  Size ColWiseMaxStep() const {
+    return Rows();
+  }
+
+  Difference ColWiseShift() const {
+    return -Cols() * Rows() + 1;
   }
 
   static UnderlyingSize ToUnderlyingSize(size_type size) {

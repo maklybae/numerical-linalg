@@ -96,19 +96,19 @@ class BaseMatrixView {
 
   // Row-wise iterators.
   iterator RowWiseBegin() const {
-    return iterator{StorageIteratorBegin(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return iterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
   }
 
   const_iterator RowWiseCBegin() const {
-    return const_iterator{StorageIteratorBegin(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return const_iterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
   }
 
   iterator RowWiseEnd() const {
-    return iterator{StorageIteratorRowWiseEnd(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return iterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
   }
 
   const_iterator RowWiseCEnd() const {
-    return const_iterator{StorageIteratorRowWiseEnd(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return const_iterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
   }
 
   reverse_iterator RowWiseRBegin() const {
@@ -129,19 +129,19 @@ class BaseMatrixView {
 
   // Column-wise iterators.
   iterator ColWiseBegin() const {
-    return iterator{StorageIteratorBegin(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+    return iterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
   }
 
   const_iterator ColWiseCBegin() const {
-    return const_iterator{StorageIteratorBegin(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+    return const_iterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
   }
 
   iterator ColWiseEnd() const {
-    return iterator{StorageIteratorColWiseEnd(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+    return iterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
   }
 
   const_iterator ColWiseCEnd() const {
-    return const_iterator{StorageIteratorColWiseEnd(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+    return const_iterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift()};
   }
 
   reverse_iterator ColWiseRBegin() const {
@@ -236,6 +236,30 @@ class BaseMatrixView {
 
   StorageIterator StorageIteratorColWiseEnd() const {
     return ptr_->StorageIteratorBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColEnd();
+  }
+
+  Size RowWiseStepSize() const {
+    return 1;
+  }
+
+  Size ColWiseStepSize() const {
+    return ptr_->Cols();
+  }
+
+  Size RowWiseMaxStep() const {
+    return range_.Cols();
+  }
+
+  Size ColWiseMaxStep() const {
+    return range_.Rows();
+  }
+
+  Difference RowWiseShift() const {
+    return ptr_->Cols() - range_.Cols();
+  }
+
+  Difference ColWiseShift() const {
+    return -ptr_->Cols() * range_.Rows() + 1;
   }
 
   MyMatrix* ptr_{};
