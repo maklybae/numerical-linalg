@@ -2,6 +2,7 @@
 #define STEPPER_H
 
 #include <cassert>
+#include <compare>
 
 #include "core_types.h"
 
@@ -56,6 +57,20 @@ class Stepper {
 
   Difference GetIteration() const {
     return iteration_;
+  }
+
+  friend std::partial_ordering operator<=>(const Stepper& lhs, const Stepper& rhs) {
+    if (lhs.modulo_ != rhs.modulo_) {
+      return std::partial_ordering::unordered;
+    }
+    if (auto c = lhs.iteration_ <=> rhs.iteration_; c != 0) {
+      return c;
+    }
+    return lhs.step_ <=> rhs.step_;
+  }
+
+  friend bool operator==(const Stepper& lhs, const Stepper& rhs) {
+    return lhs <=> rhs == 0;
   }
 
  private:
