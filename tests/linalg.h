@@ -6,4 +6,3 @@
 #include "../src/scalar_types.h"
 #include "../src/scalar_utils.h"
 #include "../src/submatrix_range.h"
-#include "../src/stepper.h"

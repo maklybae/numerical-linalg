@@ -102,6 +102,39 @@ TEST(MatrixViewIterator, FromBeginSize) {
   EXPECT_EQ(actual, expected);
 }
 
+TEST(MatrixViewIterator, FromBeginSizeColWise) {
+  Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
+                        {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginSize(linalg::ERowBegin{1}, linalg::ERows{3},
+                                                                linalg::EColBegin{1}, linalg::ECols{4}));
+  std::vector<double> expected{7, 12, 17, 8, 13, 18, 9, 14, 19, 10, 15, 20};
+  std::vector<double> actual(view.ColWiseBegin(), view.ColWiseEnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixViewIterator, FromBeginSizeConstColWise) {
+  Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
+                        {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginSize(linalg::ERowBegin{1}, linalg::ERows{3},
+                                                                linalg::EColBegin{1}, linalg::ECols{4}));
+  std::vector<double> expected{7, 12, 17, 8, 13, 18, 9, 14, 19, 10, 15, 20};
+  std::vector<double> actual(view.ColWiseCBegin(), view.ColWiseCEnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixViewIterator, FromBeginSizeConstReverseColWise) {
+  Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
+                        {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
+  MatrixView<double> view(matrix, SubmatrixRange::FromBeginSize(linalg::ERowBegin{1}, linalg::ERows{3},
+                                                                linalg::EColBegin{1}, linalg::ECols{4}));
+  std::vector<double> expected{20, 15, 10, 19, 14, 9, 18, 13, 8, 17, 12, 7};
+  std::vector<double> actual(view.ColWiseCRBegin(), view.ColWiseCREnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
 TEST(MatrixView, ImplicitConstCtor) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
@@ -122,9 +155,10 @@ TEST(MatrixView, TemplateApply) {
   Matrix<double> rhs_mat{{1, 2}, {3, 4}};
   linalg::detail::Apply(lhs_view, rhs_mat, std::plus<>());
 
-  std::cout << lhs_mat(0, 0) << lhs_mat(0, 1) << lhs_mat(0, 2) << lhs_mat(0, 3) << lhs_mat(0, 4) << lhs_mat(1, 0)
-            << lhs_mat(1, 1) << lhs_mat(1, 2) << lhs_mat(1, 3) << lhs_mat(1, 4) << lhs_mat(2, 0) << lhs_mat(2, 1)
-            << lhs_mat(2, 2) << lhs_mat(2, 3) << lhs_mat(2, 4) << lhs_mat(3, 0) << lhs_mat(3, 1) << lhs_mat(3, 2)
-            << std::endl;
+  // std::cout << lhs_mat(0, 0) << lhs_mat(0, 1) << lhs_mat(0, 2) << lhs_mat(0, 3) << lhs_mat(0, 4) << lhs_mat(1, 0)
+  //           << lhs_mat(1, 1) << lhs_mat(1, 2) << lhs_mat(1, 3) << lhs_mat(1, 4) << lhs_mat(2, 0) << lhs_mat(2, 1)
+  //           << lhs_mat(2, 2) << lhs_mat(2, 3) << lhs_mat(2, 4) << lhs_mat(3, 0) << lhs_mat(3, 1) << lhs_mat(3, 2)
+  //           << std::endl;
 }
+
 }  // namespace

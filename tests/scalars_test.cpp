@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <complex>
-#include <concepts>
 #include <type_traits>
-#include <vector>
 
 #include "linalg.h"
 
