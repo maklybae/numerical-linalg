@@ -253,7 +253,7 @@ class Matrix {
   }
 
   // Needs to use in MatrixView to build BlockIterators.
-  StorageIterator RawBegin() {
+  StorageIterator StorageIteratorBegin() {
     return data_.begin();
   }
 

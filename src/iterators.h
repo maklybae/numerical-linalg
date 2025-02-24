@@ -1,7 +1,7 @@
 #ifndef ITERATORS_H
 #define ITERATORS_H
 
-#include <limits>
+#include <iterator>
 
 #include "core_types.h"
 
@@ -12,6 +12,7 @@ namespace iterators {
 template <typename T>
 concept DefinesPolicy = requires {
   typename T::MyStorageIterator;
+
   typename T::difference_type;
   typename T::value_type;
   typename T::pointer;
@@ -68,14 +69,16 @@ class DefaultAccessor : public Defines {
   explicit DefaultAccessor(MyStorageIterator iter) : storage_iter_{iter} {}
 };
 
+// TODO: удалить RandomAccessor, перенести логику [] в moving logic, тк [n] <=> *(it + n)
+
 template <DefinesPolicy Defines>
 class RandomAccessor : public DefaultAccessor<Defines> {
  public:
   using Accessor = DefaultAccessor<Defines>;
   using Accessor::Accessor;
   using typename Accessor::difference_type;
-  using typename Accessor::MyStorageIterator;
-  using typename Accessor::pointer;
+  // using typename Accessor::MyStorageIterator;
+  // using typename Accessor::pointer;
   using typename Accessor::reference;
 
   reference operator[](difference_type n) const {
@@ -99,13 +102,14 @@ class BlockMovingLogic : public Accessor {
 
   explicit BlockMovingLogic(MyStorageIterator iter) : Accessor{iter} {}
 
-  BlockMovingLogic(MyStorageIterator iter, Size cols, Size shift) : Accessor{iter}, cols_{cols}, shift_{shift} {}
+  BlockMovingLogic(MyStorageIterator iter, Size step_size, Size max_step, Difference shift)
+      : Accessor{iter}, step_size_{step_size}, max_step_{max_step}, shift_{shift} {}
 
   BlockMovingLogic& operator++() {
-    ++storage_iter_;
-    ++col_count_;
-    if (col_count_ == cols_) {
-      col_count_ = 0;
+    storage_iter_ += step_size_;
+    ++cur_step_;
+    if (cur_step_ == max_step_) {
+      cur_step_ = 0;
       storage_iter_ += shift_;
     }
     return *this;
@@ -118,10 +122,10 @@ class BlockMovingLogic : public Accessor {
   }
 
   BlockMovingLogic& operator--() {
-    --storage_iter_;
-    --col_count_;
-    if (col_count_ == -1) {
-      col_count_ = cols_ - 1;
+    storage_iter_ -= step_size_;
+    --cur_step_;
+    if (cur_step_ == -1) {
+      cur_step_ = max_step_ - 1;
       storage_iter_ -= shift_;
     }
     return *this;
@@ -143,10 +147,10 @@ class BlockMovingLogic : public Accessor {
 
  private:
   using Accessor::storage_iter_;
-  static constexpr Size kNoColsLimit = std::numeric_limits<Size>::max();
-  Size cols_{0};
+  Size step_size_{0};
+  Size cur_step_{0};
+  Size max_step_{0};
   Difference shift_{0};
-  Size col_count_{0};
 };
 
 template <typename Accessor>

@@ -13,13 +13,13 @@ template <typename Scalar, ConstnessEnum Constness>
 class BaseMatrixView {
   static constexpr bool kIsConst = Constness == ConstnessEnum::kConst;
 
- public:
+  using MyMatrix           = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using ReturnType         = std::conditional_t<kIsConst, Scalar, Scalar&>;
   using BlockIterator      = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::DefaultDefines<Scalar>>>;
   using ConstBlockIterator = iterators::BlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
+  using StorageIterator    = MyMatrix::StorageIterator;
 
-  using MyMatrix   = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
-  using ReturnType = std::conditional_t<kIsConst, Scalar, Scalar&>;
-
+ public:
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type      = Scalar;
   using reference       = Scalar&;
@@ -92,41 +92,107 @@ class BaseMatrixView {
     return range_.Cols();
   }
 
+  // Iterators
+
+  // Row-wise iterators.
+  iterator RowWiseBegin() const {
+    return iterator{StorageIteratorBegin(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+  }
+
+  const_iterator RowWiseCBegin() const {
+    return const_iterator{StorageIteratorBegin(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+  }
+
+  iterator RowWiseEnd() const {
+    return iterator{StorageIteratorRowWiseEnd(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+  }
+
+  const_iterator RowWiseCEnd() const {
+    return const_iterator{StorageIteratorRowWiseEnd(), 1, range_.Cols(), ptr_->Cols() - range_.Cols()};
+  }
+
+  reverse_iterator RowWiseRBegin() const {
+    return reverse_iterator{RowWiseEnd()};
+  }
+
+  const_reverse_iterator RowWiseCRBegin() const {
+    return const_reverse_iterator{RowWiseCEnd()};
+  }
+
+  reverse_iterator RowWiseREnd() const {
+    return reverse_iterator{RowWiseBegin()};
+  }
+
+  const_reverse_iterator RowWiseCREnd() const {
+    return const_reverse_iterator{RowWiseCBegin()};
+  }
+
+  // Column-wise iterators.
+  iterator ColWiseBegin() const {
+    return iterator{StorageIteratorBegin(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+  }
+
+  const_iterator ColWiseCBegin() const {
+    return const_iterator{StorageIteratorBegin(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+  }
+
+  iterator ColWiseEnd() const {
+    return iterator{StorageIteratorColWiseEnd(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+  }
+
+  const_iterator ColWiseCEnd() const {
+    return const_iterator{StorageIteratorColWiseEnd(), ptr_->Cols(), range_.Rows(), -ptr_->Cols() * range_.Rows() + 1};
+  }
+
+  reverse_iterator ColWiseRBegin() const {
+    return reverse_iterator{ColWiseEnd()};
+  }
+
+  const_reverse_iterator ColWiseCRBegin() const {
+    return const_reverse_iterator{ColWiseCEnd()};
+  }
+
+  reverse_iterator ColWiseREnd() const {
+    return reverse_iterator{ColWiseBegin()};
+  }
+
+  const_reverse_iterator ColWiseCREnd() const {
+    return const_reverse_iterator{ColWiseCBegin()};
+  }
+
+  // STL-like iterators.
+  // WARNING: Row-wise as default.
   // NOLINTBEGIN(readability-identifier-naming)
   iterator begin() const {
-    return iterator{ptr_->RawBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColBegin(), range_.Cols(),
-                    ptr_->Cols() - range_.Cols()};
+    return RowWiseBegin();
   }
 
   const_iterator cbegin() const {
-    return const_iterator{ptr_->RawBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColBegin(), range_.Cols(),
-                          ptr_->Cols() - range_.Cols()};
+    return RowWiseCBegin();
   }
 
   iterator end() const {
-    return iterator{ptr_->RawBegin() + (range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin(),
-                    range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return RowWiseEnd();
   }
 
   const_iterator cend() const {
-    return const_iterator{ptr_->RawBegin() + (range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin(),
-                          range_.Cols(), ptr_->Cols() - range_.Cols()};
+    return RowWiseCEnd();
   }
 
   reverse_iterator rbegin() const {
-    return reverse_iterator{end()};
+    return RowWiseRBegin();
   }
 
   const_reverse_iterator crbegin() const {
-    return const_reverse_iterator{cend()};
+    return RowWiseCRBegin();
   }
 
   reverse_iterator rend() const {
-    return reverse_iterator{begin()};
+    return RowWiseREnd();
   }
 
   const_reverse_iterator crend() const {
-    return const_reverse_iterator{cbegin()};
+    return RowWiseCREnd();
   }
   // NOLINTEND(readability-identifier-naming)
 
@@ -158,6 +224,18 @@ class BaseMatrixView {
  private:
   bool IsValidMatrixView() const {
     return ptr_ != nullptr && Rows() > 0 && Cols() > 0;
+  }
+
+  StorageIterator StorageIteratorBegin() const {
+    return ptr_->StorageIteratorBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColBegin();
+  }
+
+  StorageIterator StorageIteratorRowWiseEnd() const {
+    return ptr_->StorageIteratorBegin() + (range_.RowBegin() + range_.Rows()) * ptr_->Cols() + range_.ColBegin();
+  }
+
+  StorageIterator StorageIteratorColWiseEnd() const {
+    return ptr_->StorageIteratorBegin() + range_.RowBegin() * ptr_->Cols() + range_.ColEnd();
   }
 
   MyMatrix* ptr_{};
