@@ -57,11 +57,19 @@ template <MatrixType LhsT, MatrixType RhsT>
 using CommonValueType = std::common_type_t<typename LhsT::value_type, typename RhsT::value_type>;
 
 struct MatrixState {
+  // TODO: Очень хочется добавить сопряжение, но это никак не укладывается в мою логику с итераторами.
+  // Наверное, нужно делать отдельный OutputIterator с тем же MovingLogic, который будет возвращать сопряженные
+  // значения.
+  // Еще подумал, что можно делать что-то вроде ленивых вычислений. То есть пока не вызваны итераторы, то отдаем
+  // conj(val) как rvalue, когда потребовали итератор, то сначала применяем conj, потом уже отдаем.
+  // А может оно и вовсе не нужно, все-таки тут больше разговор про View, который лишь занимается представлением данных
+  // а разных формах (тут же и транспонирование), а сопряжение здесь как-то ортогонально всему этому.
+
   enum class TransposedEnum { kTransposed, kNonTransposed };
-  enum class ConjugatedEnum { kConjugated, kNonConjugated };
+  // enum class ConjugatedEnum { kConjugated, kNonConjugated };
 
   TransposedEnum transposed{TransposedEnum::kNonTransposed};
-  ConjugatedEnum conjugated{ConjugatedEnum::kNonConjugated};
+  // ConjugatedEnum conjugated{ConjugatedEnum::kNonConjugated};
 
   MatrixState& SwitchTransposed() {
     transposed =
@@ -69,19 +77,19 @@ struct MatrixState {
     return *this;
   }
 
-  MatrixState& SwitchConjugated() {
-    conjugated =
-        (conjugated == ConjugatedEnum::kConjugated) ? ConjugatedEnum::kNonConjugated : ConjugatedEnum::kConjugated;
-    return *this;
-  }
+  // MatrixState& SwitchConjugated() {
+  //   conjugated =
+  //       (conjugated == ConjugatedEnum::kConjugated) ? ConjugatedEnum::kNonConjugated : ConjugatedEnum::kConjugated;
+  //   return *this;
+  // }
 
   bool IsTransposed() const {
     return transposed == TransposedEnum::kTransposed;
   }
 
-  bool IsConjugated() const {
-    return conjugated == ConjugatedEnum::kConjugated;
-  }
+  // bool IsConjugated() const {
+  //   return conjugated == ConjugatedEnum::kConjugated;
+  // }
 };
 
 }  // namespace detail

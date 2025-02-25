@@ -80,6 +80,13 @@ class DefaultAccessor : public Defines {
   explicit DefaultAccessor(MyStorageIterator iter) : storage_iter_{iter} {}
 };
 
+// TODO: Этот итератор выглядит как костыль, но ничего другого я не смог придумать.
+// 1. Я хочу один итератор row-wise и col-wise для MatrixView, чтобы в Runtime можно
+// было в зависимости от Transpose State ходить гарантированно по строкам или столбцам.
+// 2. Костыльный threshold нужен для того, чтобы ходить по столбцам: из-за особенности
+// расположения матрицы в одномерном массиве, непонятно, куда ставить end для col-wise
+// (проблема при захвате во View первого столбца, последнего столбца и
+// последней строки самой матрицы).
 template <typename Accessor>
 class BlockIteratorLogic : public Accessor {
  public:

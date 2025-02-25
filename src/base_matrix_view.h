@@ -1,7 +1,6 @@
 #ifndef BASE_MATRIX_VIEW_H
 #define BASE_MATRIX_VIEW_H
 
-#include <complex>
 #include <type_traits>
 #include <utility>
 
@@ -95,10 +94,6 @@ class BaseMatrixView {
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
 
-    if (state_.IsConjugated()) {
-      return std::conj(state_.IsTransposed() ? (*ptr_)(range_.RowBegin() + col, range_.ColBegin() + row)
-                                             : (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col));
-    }
     return state_.IsTransposed() ? (*ptr_)(range_.RowBegin() + col, range_.ColBegin() + row)
                                  : (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col);
   }
@@ -113,27 +108,21 @@ class BaseMatrixView {
 
   // Iterators
 
-  // TODO: вот тут проблема огромная возникла. хочу чтобы rowblock и colblock были одним и тем же итератором.
-
   // Row-wise iterators.
   BlockIterator RowWiseBegin() const {
-    return BlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
-                         BlockIterator::kDefaultThreshold};
+    return state_.IsTransposed() ? BaseColWiseBegin() : BaseRowWiseBegin();
   }
 
   ConstBlockIterator RowWiseCBegin() const {
-    return ConstBlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
-                              BlockIterator::kDefaultThreshold};
+    return state_.IsTransposed() ? BaseColWiseCBegin() : BaseRowWiseCBegin();
   }
 
   BlockIterator RowWiseEnd() const {
-    return BlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
-                         BlockIterator::kDefaultThreshold};
+    return state_.IsTransposed() ? BaseColWiseEnd() : BaseRowWiseEnd();
   }
 
   ConstBlockIterator RowWiseCEnd() const {
-    return ConstBlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
-                              ConstBlockIterator::kDefaultThreshold};
+    return state_.IsTransposed() ? BaseColWiseCEnd() : BaseRowWiseCEnd();
   }
 
   RBlockIterator RowWiseRBegin() const {
@@ -154,31 +143,19 @@ class BaseMatrixView {
 
   // Column-wise iterators.
   BlockIterator ColWiseBegin() const {
-    return BlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
-                         StorageIteratorColWiseEnd()};
+    return state_.IsTransposed() ? BaseRowWiseBegin() : BaseColWiseBegin();
   }
 
   ConstBlockIterator ColWiseCBegin() const {
-    return ConstBlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
-                              StorageIteratorColWiseEnd()};
+    return state_.IsTransposed() ? BaseRowWiseCBegin() : BaseColWiseCBegin();
   }
 
   BlockIterator ColWiseEnd() const {
-    return BlockIterator{StorageIteratorColWiseEnd(),
-                         ColWiseStepSize(),
-                         ColWiseMaxStep(),
-                         ColWiseShift(),
-                         StorageIteratorColWiseEnd(),
-                         Rows()};
+    return state_.IsTransposed() ? BaseRowWiseEnd() : BaseColWiseEnd();
   }
 
   ConstBlockIterator ColWiseCEnd() const {
-    return ConstBlockIterator{StorageIteratorColWiseEnd(),
-                              ColWiseStepSize(),
-                              ColWiseMaxStep(),
-                              ColWiseShift(),
-                              StorageIteratorColWiseEnd(),
-                              Rows()};
+    return state_.IsTransposed() ? BaseRowWiseCEnd() : BaseColWiseCEnd();
   }
 
   RBlockIterator ColWiseRBegin() const {
@@ -297,6 +274,54 @@ class BaseMatrixView {
 
   Difference ColWiseShift() const {
     return -ptr_->Cols() * range_.Rows() + 1;
+  }
+
+  BlockIterator BaseRowWiseBegin() const {
+    return BlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                         BlockIterator::kDefaultThreshold};
+  }
+
+  ConstBlockIterator BaseRowWiseCBegin() const {
+    return ConstBlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                              BlockIterator::kDefaultThreshold};
+  }
+
+  BlockIterator BaseRowWiseEnd() const {
+    return BlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                         BlockIterator::kDefaultThreshold};
+  }
+
+  ConstBlockIterator BaseRowWiseCEnd() const {
+    return ConstBlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                              ConstBlockIterator::kDefaultThreshold};
+  }
+
+  BlockIterator BaseColWiseBegin() const {
+    return BlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                         StorageIteratorColWiseEnd()};
+  }
+
+  ConstBlockIterator BaseColWiseCBegin() const {
+    return ConstBlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                              StorageIteratorColWiseEnd()};
+  }
+
+  BlockIterator BaseColWiseEnd() const {
+    return BlockIterator{StorageIteratorColWiseEnd(),
+                         ColWiseStepSize(),
+                         ColWiseMaxStep(),
+                         ColWiseShift(),
+                         StorageIteratorColWiseEnd(),
+                         Rows()};
+  }
+
+  ConstBlockIterator BaseColWiseCEnd() const {
+    return ConstBlockIterator{StorageIteratorColWiseEnd(),
+                              ColWiseStepSize(),
+                              ColWiseMaxStep(),
+                              ColWiseShift(),
+                              StorageIteratorColWiseEnd(),
+                              Rows()};
   }
 
   MyMatrix* ptr_{};
