@@ -195,18 +195,15 @@ TEST(MatrixView, TemplateApply) {
   linalg::detail::Apply(lhs_view, rhs_mat, std::plus<>());
 }
 
-TEST(ExperimentalIteratorNonConstToConstCast, ColBlockIterator) {
-  linalg::detail::iterators::ExperimentalColBlockIterator<double> col_block_iter;
-  linalg::detail::iterators::ExperimentalConstColBlockIterator<double> const_col_block_iter{col_block_iter};
+TEST(IteratorAliases, NonConstToConstCast) {
+  linalg::detail::iterators::RowIterator<double> row_iter;
+  linalg::detail::iterators::ConstRowIterator<double> const_row_iter{row_iter};
+
+  linalg::detail::iterators::ColBlockIterator<double> col_block_iter;
+  linalg::detail::iterators::ConstColBlockIterator<double> const_col_block_iter{col_block_iter};
+
+  linalg::detail::iterators::RowBlockIterator<double> row_block_iter;
+  linalg::detail::iterators::ConstRowBlockIterator<double> const_row_block_iter{row_block_iter};
 }
 
-TEST(ExperimentalIteratorNonConstToConstCast, RowIterator) {
-  linalg::detail::iterators::ExperimentalRowIterator<double> row_iter;
-  linalg::detail::iterators::ExperimentalConstRowIterator<double> const_row_iter{row_iter};
-}
-
-TEST(ExperimentalIteratorNonConstToConstCast, RowBlockIterator) {
-  linalg::detail::iterators::ExperimentalRowBlockIterator<double> row_block_iter;
-  linalg::detail::iterators::ExperimentalConstRowBlockIterator<double> const_row_block_iter{row_block_iter};
-}
 }  // namespace

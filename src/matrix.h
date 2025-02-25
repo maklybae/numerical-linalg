@@ -25,18 +25,14 @@ class Matrix {
   using ConstStorageIterator = detail::ConstStorageIterator<Scalar>;
 
  public:
-  using RowIterator =
-      detail::iterators::RowMovingLogic<detail::iterators::DefaultAccessor<detail::iterators::DefaultDefines<Scalar>>>;
-  using ConstRowIterator =
-      detail::iterators::RowMovingLogic<detail::iterators::DefaultAccessor<detail::iterators::ConstDefines<Scalar>>>;
-  using RRowIterator   = std::reverse_iterator<RowIterator>;
-  using CRRRowIterator = std::reverse_iterator<ConstRowIterator>;
-  using ColIterator    = detail::iterators::ColBlockMovingLogic<
-         detail::iterators::DefaultAccessor<detail::iterators::DefaultDefines<Scalar>>>;
-  using ConstColIterator = detail::iterators::ColBlockMovingLogic<
-      detail::iterators::DefaultAccessor<detail::iterators::ConstDefines<Scalar>>>;
-  using RColIterator  = std::reverse_iterator<ColIterator>;
-  using CRColIterator = std::reverse_iterator<ConstColIterator>;
+  using RowIterator      = detail::iterators::RowIterator<Scalar>;
+  using ConstRowIterator = detail::iterators::ConstRowIterator<Scalar>;
+  using RRowIterator     = std::reverse_iterator<RowIterator>;
+  using CRRRowIterator   = std::reverse_iterator<ConstRowIterator>;
+  using ColIterator      = detail::iterators::ColBlockIterator<Scalar>;
+  using ConstColIterator = detail::iterators::ConstColBlockIterator<Scalar>;
+  using RColIterator     = std::reverse_iterator<ColIterator>;
+  using CRColIterator    = std::reverse_iterator<ConstColIterator>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;

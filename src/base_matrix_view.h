@@ -15,17 +15,13 @@ template <typename Scalar, ConstnessEnum Constness>
 class BaseMatrixView {
   static constexpr bool kIsConst = Constness == ConstnessEnum::kConst;
 
-  using MyMatrix        = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
-  using ReturnType      = std::conditional_t<kIsConst, Scalar, Scalar&>;
-  using StorageIterator = MyMatrix::StorageIterator;
-  using BasicRowBlockIterator =
-      iterators::RowBlockMovingLogic<iterators::DefaultAccessor<iterators::DefaultDefines<Scalar>>>;
-  using BasicConstRowBlockIterator =
-      iterators::RowBlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
-  using BasicColBlockIterator =
-      iterators::ColBlockMovingLogic<iterators::DefaultAccessor<iterators::DefaultDefines<Scalar>>>;
-  using BasicConstColBlockIterator =
-      iterators::ColBlockMovingLogic<iterators::DefaultAccessor<iterators::ConstDefines<Scalar>>>;
+  using MyMatrix                   = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using ReturnType                 = std::conditional_t<kIsConst, Scalar, Scalar&>;
+  using StorageIterator            = MyMatrix::StorageIterator;
+  using BasicRowBlockIterator      = iterators::RowBlockIterator<Scalar>;
+  using BasicConstRowBlockIterator = iterators::ConstRowBlockIterator<Scalar>;
+  using BasicColBlockIterator      = iterators::ColBlockIterator<Scalar>;
+  using BasicConstColBlockIterator = iterators::ConstColBlockIterator<Scalar>;
 
  public:
   using RowBlockIterator      = std::conditional_t<kIsConst, BasicConstRowBlockIterator, BasicRowBlockIterator>;
