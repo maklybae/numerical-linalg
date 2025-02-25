@@ -56,6 +56,34 @@ concept MutableMatrixType = kIsMutableMatrixV<Scalar>;
 template <MatrixType LhsT, MatrixType RhsT>
 using CommonValueType = std::common_type_t<typename LhsT::value_type, typename RhsT::value_type>;
 
+struct MatrixState {
+  enum class TransposedEnum { kTransposed, kNonTransposed };
+  enum class ConjugatedEnum { kConjugated, kNonConjugated };
+
+  TransposedEnum transposed{TransposedEnum::kNonTransposed};
+  ConjugatedEnum conjugated{ConjugatedEnum::kNonConjugated};
+
+  MatrixState& SwitchTransposed() {
+    transposed =
+        (transposed == TransposedEnum::kTransposed) ? TransposedEnum::kNonTransposed : TransposedEnum::kTransposed;
+    return *this;
+  }
+
+  MatrixState& SwitchConjugated() {
+    conjugated =
+        (conjugated == ConjugatedEnum::kConjugated) ? ConjugatedEnum::kNonConjugated : ConjugatedEnum::kConjugated;
+    return *this;
+  }
+
+  bool IsTransposed() const {
+    return transposed == TransposedEnum::kTransposed;
+  }
+
+  bool IsConjugated() const {
+    return conjugated == ConjugatedEnum::kConjugated;
+  }
+};
+
 }  // namespace detail
 }  // namespace linalg
 

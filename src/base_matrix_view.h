@@ -1,11 +1,14 @@
 #ifndef BASE_MATRIX_VIEW_H
 #define BASE_MATRIX_VIEW_H
 
+#include <complex>
 #include <type_traits>
+#include <utility>
 
 #include "core_types.h"
 #include "iterators.h"
 #include "matrix.h"
+#include "matrix_types.h"
 #include "submatrix_range.h"
 
 namespace linalg {
@@ -57,7 +60,9 @@ class BaseMatrixView {
   BaseMatrixView& operator=(const BaseMatrixView&) = default;
 
   BaseMatrixView(BaseMatrixView&& other) noexcept
-      : ptr_{std::exchange(other, nullptr)}, range_{std::exchange(other, {})} {}
+      : ptr_{std::exchange(other.ptr_, nullptr)}
+      , range_{std::exchange(other.range_, {})}
+      , state_{std::exchange(other.state_, {})} {}
   BaseMatrixView& operator=(BaseMatrixView&&) noexcept {
     BaseMatrixView tmp = std::move(*this);
     std::swap(ptr_, tmp.ptr_);
@@ -74,12 +79,14 @@ class BaseMatrixView {
   // NOLINTNEXTLINE(google-explicit-constructor)
   BaseMatrixView(BaseMatrixView<Scalar, ConstnessEnum::kNonConst>& other)
     requires kIsConst
-      : ptr_{other.ptr_}, range_{other.range_} {}
+      : ptr_{other.ptr_}, range_{other.range_}, state_{other.state_} {}
 
   // NOLINTNEXTLINE(google-explicit-constructor)
   BaseMatrixView(BaseMatrixView<Scalar, ConstnessEnum::kNonConst>&& other) noexcept
     requires kIsConst
-      : ptr_{std::exchange(other.ptr_, nullptr)}, range_{std::exchange(other.range_, {})} {}
+      : ptr_{std::exchange(other.ptr_, nullptr)}
+      , range_{std::exchange(other.range_, {})}
+      , state_{std::exchange(other.state_, {})} {}
 
   BaseMatrixView(MyMatrix& matrix, SubmatrixRange range) : ptr_{&matrix}, range_{range} {
     assert(matrix.IsValidMatrix() && "Matrix data should not be empty");
@@ -96,18 +103,25 @@ class BaseMatrixView {
     assert(row < Rows() && "Row index out of bounds");
     assert(col < Cols() && "Col index out of bounds");
 
-    return (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col);
+    if (state_.IsConjugated()) {
+      return std::conj(state_.IsTransposed() ? (*ptr_)(range_.RowBegin() + col, range_.ColBegin() + row)
+                                             : (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col));
+    }
+    return state_.IsTransposed() ? (*ptr_)(range_.RowBegin() + col, range_.ColBegin() + row)
+                                 : (*ptr_)(range_.RowBegin() + row, range_.ColBegin() + col);
   }
 
   size_type Rows() const {
-    return range_.Rows();
+    return state_.IsTransposed() ? range_.Cols() : range_.Rows();
   }
 
   size_type Cols() const {
-    return range_.Cols();
+    return state_.IsTransposed() ? range_.Rows() : range_.Cols();
   }
 
   // Iterators
+
+  // TODO: вот тут проблема огромная возникла. хочу чтобы rowblock и colblock были одним и тем же итератором.
 
   // Row-wise iterators.
   RowBlockIterator RowWiseBegin() const {
@@ -291,6 +305,7 @@ class BaseMatrixView {
 
   MyMatrix* ptr_{};
   SubmatrixRange range_{};
+  MatrixState state_{};
 };
 
 }  // namespace detail
