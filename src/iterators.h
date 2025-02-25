@@ -69,28 +69,6 @@ class DefaultAccessor : public Defines {
   explicit DefaultAccessor(MyStorageIterator iter) : storage_iter_{iter} {}
 };
 
-// TODO: удалить RandomAccessor, перенести логику [] в moving logic, тк [n] <=> *(it + n)
-
-template <DefinesPolicy Defines>
-class RandomAccessor : public DefaultAccessor<Defines> {
- public:
-  using Accessor = DefaultAccessor<Defines>;
-  using Accessor::Accessor;
-  using typename Accessor::difference_type;
-  // using typename Accessor::MyStorageIterator;
-  // using typename Accessor::pointer;
-  using typename Accessor::reference;
-
-  reference operator[](difference_type n) const {
-    return storage_iter_[n];
-  }
-
- protected:
-  using Accessor::storage_iter_;
-};
-
-// TODO: Add AccessorPolicy concept
-
 template <typename Accessor>
 class RowBlockMovingLogic : public Accessor {
  public:
@@ -224,7 +202,9 @@ class RowMovingLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::contiguous_iterator_tag;
+  using typename Accessor::difference_type;
   using typename Accessor::MyStorageIterator;
+  using typename Accessor::reference;
 
   RowMovingLogic() = default;
 
@@ -291,6 +271,10 @@ class RowMovingLogic : public Accessor {
 
   friend bool operator!=(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
     return !(lhs == rhs);
+  }
+
+  reference operator[](difference_type n) const {
+    return *(*this + n);
   }
 
  private:

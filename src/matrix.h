@@ -26,9 +26,9 @@ class Matrix {
 
  public:
   using RowIterator =
-      detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::DefaultDefines<Scalar>>>;
+      detail::iterators::RowMovingLogic<detail::iterators::DefaultAccessor<detail::iterators::DefaultDefines<Scalar>>>;
   using ConstRowIterator =
-      detail::iterators::RowMovingLogic<detail::iterators::RandomAccessor<detail::iterators::ConstDefines<Scalar>>>;
+      detail::iterators::RowMovingLogic<detail::iterators::DefaultAccessor<detail::iterators::ConstDefines<Scalar>>>;
   using RRowIterator   = std::reverse_iterator<RowIterator>;
   using CRRRowIterator = std::reverse_iterator<ConstRowIterator>;
   using ColIterator    = detail::iterators::ColBlockMovingLogic<
