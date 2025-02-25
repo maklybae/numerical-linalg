@@ -2,6 +2,7 @@
 #define ITERATORS_H
 
 #include <iterator>
+#include <type_traits>
 
 #include "core_types.h"
 
@@ -21,6 +22,9 @@ concept DefinesPolicy = requires {
 
 template <typename Scalar>
 struct DefaultDefines {
+  // Constraint to manage constness not in iterator but in Matrix types.
+  static_assert(!std::is_const_v<Scalar>, "Scalar type must not be const");
+
   using MyStorageIterator = StorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
@@ -33,6 +37,9 @@ struct DefaultDefines {
 
 template <typename Scalar>
 struct ConstDefines {
+  // Constraint to manage constness not in iterator but in Matrix types.
+  static_assert(!std::is_const_v<Scalar>, "Scalar type must not be const");
+
   using MyStorageIterator = ConstStorageIterator<Scalar>;
 
   // NOLINTBEGIN(readability-identifier-naming)
@@ -121,6 +128,14 @@ class RowBlockMovingLogic : public Accessor {
     return !(lhs == rhs);
   }
 
+ protected:
+  template <typename OtherAccessor>
+  friend class RowBlockMovingLogic;
+
+  template <typename OtherRowBlockMovingLogic>
+  explicit RowBlockMovingLogic(const OtherRowBlockMovingLogic& other)
+      : Accessor{other.storage_iter_}, step_size_{other.step_size_}, max_step_{other.max_step_}, shift_{other.shift_} {}
+
  private:
   using Accessor::storage_iter_;
   Size step_size_{0};
@@ -131,7 +146,6 @@ class RowBlockMovingLogic : public Accessor {
 
 template <typename Accessor>
 class ColBlockMovingLogic : public Accessor {
-
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
@@ -188,6 +202,19 @@ class ColBlockMovingLogic : public Accessor {
     return !(lhs == rhs);
   }
 
+ protected:
+  template <typename OtherAccessor>
+  friend class ColBlockMovingLogic;
+
+  template <typename OtherColBlockMovingLogic>
+  explicit ColBlockMovingLogic(const OtherColBlockMovingLogic& other)
+      : Accessor{other.storage_iter_}
+      , threshold_{other.threshold_}
+      , step_size_{other.step_size_}
+      , max_step_{other.max_step_}
+      , shift_{other.shift_}
+      , cur_step_{other.cur_step_} {}
+
  private:
   using Accessor::storage_iter_;
   MyStorageIterator threshold_{};
@@ -199,6 +226,8 @@ class ColBlockMovingLogic : public Accessor {
 
 template <typename Accessor>
 class RowMovingLogic : public Accessor {
+  using Accessor::storage_iter_;
+
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::contiguous_iterator_tag;
@@ -277,9 +306,46 @@ class RowMovingLogic : public Accessor {
     return *(*this + n);
   }
 
- private:
-  using Accessor::storage_iter_;
+ protected:
+  template <typename OtherAccessor>
+  friend class RowMovingLogic;
+
+  template <typename OtherRowMovingLogic>
+  explicit RowMovingLogic(const OtherRowMovingLogic& other) : Accessor{other.storage_iter_} {}
 };
+
+template <typename Scalar, template <typename> class Defines, template <typename> class Accessor,
+          template <typename> class MovingLogic>
+class Iterator : public MovingLogic<Accessor<Defines<Scalar>>> {
+  using Base = MovingLogic<Accessor<Defines<Scalar>>>;
+  using Base::Base;
+
+ public:
+  template <typename OtherScalar, template <typename> class OtherDefines, template <typename> class OtherAccessor,
+            template <typename> class OtherMovingLogic>
+    requires std::is_same_v<Scalar, OtherScalar> && std::is_same_v<Defines<Scalar>, ConstDefines<Scalar>> &&
+             std::is_same_v<OtherDefines<Scalar>, DefaultDefines<Scalar>>
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  Iterator(const Iterator<OtherScalar, OtherDefines, OtherAccessor, OtherMovingLogic>& other) : Base{other} {}
+};
+
+template <typename Scalar>
+using ExperimentalRowBlockIterator = Iterator<Scalar, DefaultDefines, DefaultAccessor, RowBlockMovingLogic>;
+
+template <typename Scalar>
+using ExperimentalConstRowBlockIterator = Iterator<Scalar, ConstDefines, DefaultAccessor, RowBlockMovingLogic>;
+
+template <typename Scalar>
+using ExperimentalColBlockIterator = Iterator<Scalar, DefaultDefines, DefaultAccessor, ColBlockMovingLogic>;
+
+template <typename Scalar>
+using ExperimentalConstColBlockIterator = Iterator<Scalar, ConstDefines, DefaultAccessor, ColBlockMovingLogic>;
+
+template <typename Scalar>
+using ExperimentalRowIterator = Iterator<Scalar, DefaultDefines, DefaultAccessor, RowMovingLogic>;
+
+template <typename Scalar>
+using ExperimentalConstRowIterator = Iterator<Scalar, ConstDefines, DefaultAccessor, RowMovingLogic>;
 
 }  // namespace iterators
 }  // namespace detail
