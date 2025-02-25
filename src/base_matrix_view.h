@@ -18,35 +18,27 @@ template <typename Scalar, ConstnessEnum Constness>
 class BaseMatrixView {
   static constexpr bool kIsConst = Constness == ConstnessEnum::kConst;
 
-  using MyMatrix                   = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
-  using ReturnType                 = std::conditional_t<kIsConst, Scalar, Scalar&>;
-  using StorageIterator            = MyMatrix::StorageIterator;
-  using BasicRowBlockIterator      = iterators::RowBlockIterator<Scalar>;
-  using BasicConstRowBlockIterator = iterators::ConstRowBlockIterator<Scalar>;
-  using BasicColBlockIterator      = iterators::ColBlockIterator<Scalar>;
-  using BasicConstColBlockIterator = iterators::ConstColBlockIterator<Scalar>;
+  using MyMatrix                = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using ReturnType              = std::conditional_t<kIsConst, Scalar, Scalar&>;
+  using StorageIterator         = MyMatrix::StorageIterator;
+  using BasicBlockIterator      = iterators::BlockIterator<Scalar>;
+  using BasicConstBlockIterator = iterators::ConstBlockIterator<Scalar>;
 
  public:
-  using RowBlockIterator      = std::conditional_t<kIsConst, BasicConstRowBlockIterator, BasicRowBlockIterator>;
-  using ConstRowBlockIterator = BasicConstRowBlockIterator;
-  using RRowBlockIterator     = std::conditional_t<kIsConst, std::reverse_iterator<RowBlockIterator>,
-                                                   std::reverse_iterator<ConstRowBlockIterator>>;
-  using CRRowBlockIterator    = std::reverse_iterator<ConstRowBlockIterator>;
-
-  using ColBlockIterator      = std::conditional_t<kIsConst, BasicConstColBlockIterator, BasicColBlockIterator>;
-  using ConstColBlockIterator = BasicConstColBlockIterator;
-  using RColBlockIterator     = std::conditional_t<kIsConst, std::reverse_iterator<ColBlockIterator>,
-                                                   std::reverse_iterator<ConstColBlockIterator>>;
-  using CRColBlockIterator    = std::reverse_iterator<ConstColBlockIterator>;
+  using BlockIterator      = std::conditional_t<kIsConst, BasicConstBlockIterator, BasicBlockIterator>;
+  using ConstBlockIterator = BasicConstBlockIterator;
+  using RBlockIterator =
+      std::conditional_t<kIsConst, std::reverse_iterator<ConstBlockIterator>, std::reverse_iterator<BlockIterator>>;
+  using CRBlockIterator = std::reverse_iterator<ConstBlockIterator>;
 
   // NOLINTBEGIN(readability-identifier-naming)
   using value_type             = Scalar;
   using reference              = Scalar&;
   using const_reference        = const Scalar&;
-  using iterator               = RowBlockIterator;
-  using const_iterator         = ConstRowBlockIterator;
-  using reverse_iterator       = RRowBlockIterator;
-  using const_reverse_iterator = CRRowBlockIterator;
+  using iterator               = BlockIterator;
+  using const_iterator         = ConstBlockIterator;
+  using reverse_iterator       = RBlockIterator;
+  using const_reverse_iterator = CRBlockIterator;
   using difference_type        = Difference;
   using size_type              = Size;
   // NOLINTEND(readability-identifier-naming)
@@ -124,81 +116,85 @@ class BaseMatrixView {
   // TODO: вот тут проблема огромная возникла. хочу чтобы rowblock и colblock были одним и тем же итератором.
 
   // Row-wise iterators.
-  RowBlockIterator RowWiseBegin() const {
-    return RowBlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
+  BlockIterator RowWiseBegin() const {
+    return BlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                         BlockIterator::kDefaultThreshold};
   }
 
-  ConstRowBlockIterator RowWiseCBegin() const {
-    return ConstRowBlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
+  ConstBlockIterator RowWiseCBegin() const {
+    return ConstBlockIterator{StorageIteratorBegin(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                              BlockIterator::kDefaultThreshold};
   }
 
-  RowBlockIterator RowWiseEnd() const {
-    return RowBlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
+  BlockIterator RowWiseEnd() const {
+    return BlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                         BlockIterator::kDefaultThreshold};
   }
 
-  ConstRowBlockIterator RowWiseCEnd() const {
-    return ConstRowBlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift()};
+  ConstBlockIterator RowWiseCEnd() const {
+    return ConstBlockIterator{StorageIteratorRowWiseEnd(), RowWiseStepSize(), RowWiseMaxStep(), RowWiseShift(),
+                              ConstBlockIterator::kDefaultThreshold};
   }
 
-  RRowBlockIterator RowWiseRBegin() const {
-    return RRowBlockIterator{RowWiseEnd()};
+  RBlockIterator RowWiseRBegin() const {
+    return RBlockIterator{RowWiseEnd()};
   }
 
-  CRRowBlockIterator RowWiseCRBegin() const {
-    return CRRowBlockIterator{RowWiseCEnd()};
+  CRBlockIterator RowWiseCRBegin() const {
+    return CRBlockIterator{RowWiseCEnd()};
   }
 
-  RRowBlockIterator RowWiseREnd() const {
-    return RRowBlockIterator{RowWiseBegin()};
+  RBlockIterator RowWiseREnd() const {
+    return RBlockIterator{RowWiseBegin()};
   }
 
-  CRRowBlockIterator RowWiseCREnd() const {
-    return CRRowBlockIterator{RowWiseCBegin()};
+  CRBlockIterator RowWiseCREnd() const {
+    return CRBlockIterator{RowWiseCBegin()};
   }
 
   // Column-wise iterators.
-  ColBlockIterator ColWiseBegin() const {
-    return ColBlockIterator{StorageIteratorBegin(), StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(),
-                            ColWiseShift()};
+  BlockIterator ColWiseBegin() const {
+    return BlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                         StorageIteratorColWiseEnd()};
   }
 
-  ConstColBlockIterator ColWiseCBegin() const {
-    return ConstColBlockIterator{StorageIteratorBegin(), StorageIteratorColWiseEnd(), ColWiseStepSize(),
-                                 ColWiseMaxStep(), ColWiseShift()};
+  ConstBlockIterator ColWiseCBegin() const {
+    return ConstBlockIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                              StorageIteratorColWiseEnd()};
   }
 
-  ColBlockIterator ColWiseEnd() const {
-    return ColBlockIterator{StorageIteratorColWiseEnd(),
-                            StorageIteratorColWiseEnd(),
-                            ColWiseStepSize(),
-                            ColWiseMaxStep(),
-                            ColWiseShift(),
-                            Rows()};
+  BlockIterator ColWiseEnd() const {
+    return BlockIterator{StorageIteratorColWiseEnd(),
+                         ColWiseStepSize(),
+                         ColWiseMaxStep(),
+                         ColWiseShift(),
+                         StorageIteratorColWiseEnd(),
+                         Rows()};
   }
 
-  ConstColBlockIterator ColWiseCEnd() const {
-    return ConstColBlockIterator{StorageIteratorColWiseEnd(),
-                                 StorageIteratorColWiseEnd(),
-                                 ColWiseStepSize(),
-                                 ColWiseMaxStep(),
-                                 ColWiseShift(),
-                                 Rows()};
+  ConstBlockIterator ColWiseCEnd() const {
+    return ConstBlockIterator{StorageIteratorColWiseEnd(),
+                              ColWiseStepSize(),
+                              ColWiseMaxStep(),
+                              ColWiseShift(),
+                              StorageIteratorColWiseEnd(),
+                              Rows()};
   }
 
-  RColBlockIterator ColWiseRBegin() const {
-    return RColBlockIterator{ColWiseEnd()};
+  RBlockIterator ColWiseRBegin() const {
+    return RBlockIterator{ColWiseEnd()};
   }
 
-  CRColBlockIterator ColWiseCRBegin() const {
-    return CRColBlockIterator{ColWiseCEnd()};
+  CRBlockIterator ColWiseCRBegin() const {
+    return CRBlockIterator{ColWiseCEnd()};
   }
 
-  RColBlockIterator ColWiseREnd() const {
-    return RColBlockIterator{ColWiseBegin()};
+  RBlockIterator ColWiseREnd() const {
+    return RBlockIterator{ColWiseBegin()};
   }
 
-  CRColBlockIterator ColWiseCREnd() const {
-    return CRColBlockIterator{ColWiseCBegin()};
+  CRBlockIterator ColWiseCREnd() const {
+    return CRBlockIterator{ColWiseCBegin()};
   }
 
   // STL-like iterators.

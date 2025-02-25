@@ -199,11 +199,8 @@ TEST(IteratorAliases, NonConstToConstCast) {
   linalg::detail::iterators::RowIterator<double> row_iter;
   linalg::detail::iterators::ConstRowIterator<double> const_row_iter{row_iter};
 
-  linalg::detail::iterators::ColBlockIterator<double> col_block_iter;
-  linalg::detail::iterators::ConstColBlockIterator<double> const_col_block_iter{col_block_iter};
-
-  linalg::detail::iterators::RowBlockIterator<double> row_block_iter;
-  linalg::detail::iterators::ConstRowBlockIterator<double> const_row_block_iter{row_block_iter};
+  linalg::detail::iterators::BlockIterator<double> col_block_iter;
+  linalg::detail::iterators::ConstBlockIterator<double> const_col_block_iter{col_block_iter};
 }
 
 }  // namespace

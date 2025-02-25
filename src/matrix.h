@@ -29,8 +29,8 @@ class Matrix {
   using ConstRowIterator = detail::iterators::ConstRowIterator<Scalar>;
   using RRowIterator     = std::reverse_iterator<RowIterator>;
   using CRRRowIterator   = std::reverse_iterator<ConstRowIterator>;
-  using ColIterator      = detail::iterators::ColBlockIterator<Scalar>;
-  using ConstColIterator = detail::iterators::ConstColBlockIterator<Scalar>;
+  using ColIterator      = detail::iterators::BlockIterator<Scalar>;
+  using ConstColIterator = detail::iterators::ConstBlockIterator<Scalar>;
   using RColIterator     = std::reverse_iterator<ColIterator>;
   using CRColIterator    = std::reverse_iterator<ConstColIterator>;
 
@@ -171,42 +171,40 @@ class Matrix {
 
   // Col-wise iterators. Satisfy BidirectionalIterator.
   ColIterator ColWiseBegin() {
-    return ColIterator{StorageIteratorBegin(), StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(),
-                       ColWiseShift()};
+    return ColIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                       StorageIteratorColWiseEnd()};
   }
   ConstColIterator ColWiseBegin() const {
-    return ConstColIterator{
-        StorageIteratorBegin(), StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
-    };
+    return ConstColIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                            StorageIteratorColWiseEnd()};
   }
   ConstColIterator ColWiseCBegin() const {
-    return ConstColIterator{
-        StorageIteratorBegin(), StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
-    };
+    return ConstColIterator{StorageIteratorBegin(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                            StorageIteratorColWiseEnd()};
   }
 
   ColIterator ColWiseEnd() {
     return ColIterator{StorageIteratorColWiseEnd(),
-                       StorageIteratorColWiseEnd(),
                        ColWiseStepSize(),
                        ColWiseMaxStep(),
                        ColWiseShift(),
+                       StorageIteratorColWiseEnd(),
                        Rows()};
   }
   ConstColIterator ColWiseEnd() const {
     return ConstColIterator{StorageIteratorColWiseEnd(),
-                            StorageIteratorColWiseEnd(),
                             ColWiseStepSize(),
                             ColWiseMaxStep(),
                             ColWiseShift(),
+                            StorageIteratorColWiseEnd(),
                             Rows()};
   }
   ConstColIterator ColWiseCEnd() const {
     return ConstColIterator{StorageIteratorColWiseEnd(),
-                            StorageIteratorColWiseEnd(),
                             ColWiseStepSize(),
                             ColWiseMaxStep(),
                             ColWiseShift(),
+                            StorageIteratorColWiseEnd(),
                             Rows()};
   }
 
