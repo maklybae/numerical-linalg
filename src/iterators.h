@@ -5,6 +5,8 @@
 #include <type_traits>
 
 #include "core_types.h"
+#include "matrix_types.h"
+#include "scalar_types.h"
 
 namespace linalg {
 namespace detail {
@@ -79,30 +81,30 @@ class DefaultAccessor : public Defines {
 };
 
 template <typename Accessor>
-class RowBlockMovingLogic : public Accessor {
+class RowBlockIteratorLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
   using typename Accessor::MyStorageIterator;
   using typename Accessor::value_type;
 
-  RowBlockMovingLogic() = default;
-
-  RowBlockMovingLogic(MyStorageIterator iter, Size step_size, Size max_step, Difference shift)
-      : Accessor{iter}, step_size_{step_size}, max_step_{max_step}, shift_{shift} {}
-
   template <typename OtherAccessor>
-  friend class RowBlockMovingLogic;
+  friend class RowBlockIteratorLogic;
 
-  template <typename OtherRowBlockMovingLogic>
-    requires std::is_same_v<value_type, typename OtherRowBlockMovingLogic::value_type> &&
-                 std::is_base_of_v<ConstDefines<value_type>, RowBlockMovingLogic> &&
-                 std::is_base_of_v<DefaultDefines<value_type>, OtherRowBlockMovingLogic>
+  template <typename, ConstnessEnum>
+  friend class linalg::detail::BaseMatrixView;
+
+  RowBlockIteratorLogic() = default;
+
+  template <typename OtherRowBlockIteratorLogic>
+    requires std::is_same_v<value_type, typename OtherRowBlockIteratorLogic::value_type> &&
+                 std::is_base_of_v<ConstDefines<value_type>, RowBlockIteratorLogic> &&
+                 std::is_base_of_v<DefaultDefines<value_type>, OtherRowBlockIteratorLogic>
   // NOLINTNEXTLINE(google-explicit-constructor)
-  explicit RowBlockMovingLogic(const OtherRowBlockMovingLogic& other)
+  RowBlockIteratorLogic(const OtherRowBlockIteratorLogic& other)
       : Accessor{other.storage_iter_}, step_size_{other.step_size_}, max_step_{other.max_step_}, shift_{other.shift_} {}
 
-  RowBlockMovingLogic& operator++() {
+  RowBlockIteratorLogic& operator++() {
     storage_iter_ += step_size_;
     ++cur_step_;
     if (cur_step_ == max_step_) {
@@ -112,13 +114,13 @@ class RowBlockMovingLogic : public Accessor {
     return *this;
   }
 
-  RowBlockMovingLogic operator++(int) {
-    RowBlockMovingLogic tmp = *this;
+  RowBlockIteratorLogic operator++(int) {
+    RowBlockIteratorLogic tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  RowBlockMovingLogic& operator--() {
+  RowBlockIteratorLogic& operator--() {
     storage_iter_ -= step_size_;
     --cur_step_;
     if (cur_step_ == -1) {
@@ -128,21 +130,24 @@ class RowBlockMovingLogic : public Accessor {
     return *this;
   }
 
-  RowBlockMovingLogic operator--(int) {
-    RowBlockMovingLogic tmp = *this;
+  RowBlockIteratorLogic operator--(int) {
+    RowBlockIteratorLogic tmp = *this;
     --(*this);
     return tmp;
   }
 
-  friend bool operator==(const RowBlockMovingLogic& lhs, const RowBlockMovingLogic& rhs) {
+  friend bool operator==(const RowBlockIteratorLogic& lhs, const RowBlockIteratorLogic& rhs) {
     return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
-  friend bool operator!=(const RowBlockMovingLogic& lhs, const RowBlockMovingLogic& rhs) {
+  friend bool operator!=(const RowBlockIteratorLogic& lhs, const RowBlockIteratorLogic& rhs) {
     return !(lhs == rhs);
   }
 
  private:
+  RowBlockIteratorLogic(MyStorageIterator iter, Size step_size, Size max_step, Difference shift)
+      : Accessor{iter}, step_size_{step_size}, max_step_{max_step}, shift_{shift} {}
+
   using Accessor::storage_iter_;
   Size step_size_{0};
   Size cur_step_{0};
@@ -151,33 +156,30 @@ class RowBlockMovingLogic : public Accessor {
 };
 
 template <typename Accessor>
-class ColBlockMovingLogic : public Accessor {
+class ColBlockIteratorLogic : public Accessor {
  public:
   // NOLINTNEXTLINE(readability-identifier-naming)
   using iterator_category = std::bidirectional_iterator_tag;
   using typename Accessor::MyStorageIterator;
   using typename Accessor::value_type;
 
-  ColBlockMovingLogic() = default;
-
-  ColBlockMovingLogic(MyStorageIterator iter, MyStorageIterator threshold, Size step_size, Size max_step,
-                      Difference shift, Size cur_step = 0)
-      : Accessor{iter}
-      , threshold_{threshold}
-      , step_size_{step_size}
-      , max_step_{max_step}
-      , shift_{shift}
-      , cur_step_{cur_step} {}
-
   template <typename OtherAccessor>
-  friend class ColBlockMovingLogic;
+  friend class ColBlockIteratorLogic;
 
-  template <typename OtherColBlockMovingLogic>
-    requires std::is_same_v<value_type, typename OtherColBlockMovingLogic::value_type> &&
-                 std::is_base_of_v<ConstDefines<value_type>, ColBlockMovingLogic> &&
-                 std::is_base_of_v<DefaultDefines<value_type>, OtherColBlockMovingLogic>
+  template <typename, ConstnessEnum>
+  friend class linalg::detail::BaseMatrixView;
+
+  template <detail::FloatingOrComplexType>
+  friend class linalg::Matrix;
+
+  ColBlockIteratorLogic() = default;
+
+  template <typename OtherColBlockIteratorLogic>
+    requires std::is_same_v<value_type, typename OtherColBlockIteratorLogic::value_type> &&
+                 std::is_base_of_v<ConstDefines<value_type>, ColBlockIteratorLogic> &&
+                 std::is_base_of_v<DefaultDefines<value_type>, OtherColBlockIteratorLogic>
   // NOLINTNEXTLINE(google-explicit-constructor)
-  explicit ColBlockMovingLogic(const OtherColBlockMovingLogic& other)
+  ColBlockIteratorLogic(const OtherColBlockIteratorLogic& other)
       : Accessor{other.storage_iter_}
       , threshold_{other.threshold_}
       , step_size_{other.step_size_}
@@ -185,7 +187,7 @@ class ColBlockMovingLogic : public Accessor {
       , shift_{other.shift_}
       , cur_step_{other.cur_step_} {}
 
-  ColBlockMovingLogic& operator++() {
+  ColBlockIteratorLogic& operator++() {
     storage_iter_ += step_size_;
     ++cur_step_;
     if (storage_iter_ < threshold_ && cur_step_ >= max_step_) {
@@ -195,13 +197,13 @@ class ColBlockMovingLogic : public Accessor {
     return *this;
   }
 
-  ColBlockMovingLogic operator++(int) {
-    RowBlockMovingLogic tmp = *this;
+  ColBlockIteratorLogic operator++(int) {
+    RowBlockIteratorLogic tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  ColBlockMovingLogic& operator--() {
+  ColBlockIteratorLogic& operator--() {
     storage_iter_ -= step_size_;
     --cur_step_;
     if (cur_step_ < 0) {
@@ -211,21 +213,30 @@ class ColBlockMovingLogic : public Accessor {
     return *this;
   }
 
-  ColBlockMovingLogic operator--(int) {
-    RowBlockMovingLogic tmp = *this;
+  ColBlockIteratorLogic operator--(int) {
+    RowBlockIteratorLogic tmp = *this;
     --(*this);
     return tmp;
   }
 
-  friend bool operator==(const ColBlockMovingLogic& lhs, const ColBlockMovingLogic& rhs) {
+  friend bool operator==(const ColBlockIteratorLogic& lhs, const ColBlockIteratorLogic& rhs) {
     return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
-  friend bool operator!=(const ColBlockMovingLogic& lhs, const ColBlockMovingLogic& rhs) {
+  friend bool operator!=(const ColBlockIteratorLogic& lhs, const ColBlockIteratorLogic& rhs) {
     return !(lhs == rhs);
   }
 
  private:
+  ColBlockIteratorLogic(MyStorageIterator iter, MyStorageIterator threshold, Size step_size, Size max_step,
+                        Difference shift, Size cur_step = 0)
+      : Accessor{iter}
+      , threshold_{threshold}
+      , step_size_{step_size}
+      , max_step_{max_step}
+      , shift_{shift}
+      , cur_step_{cur_step} {}
+
   using Accessor::storage_iter_;
   MyStorageIterator threshold_{};
   Size step_size_{0};
@@ -235,7 +246,7 @@ class ColBlockMovingLogic : public Accessor {
 };
 
 template <typename Accessor>
-class RowMovingLogic : public Accessor {
+class RowIteratorLogic : public Accessor {
   using Accessor::storage_iter_;
 
  public:
@@ -246,105 +257,109 @@ class RowMovingLogic : public Accessor {
   using typename Accessor::reference;
   using typename Accessor::value_type;
 
-  RowMovingLogic() = default;
-
-  explicit RowMovingLogic(MyStorageIterator iter) : Accessor{iter} {}
-
   template <typename OtherAccessor>
-  friend class RowMovingLogic;
+  friend class RowIteratorLogic;
 
-  template <typename OtherRowMovingLogic>
-    requires std::is_same_v<value_type, typename OtherRowMovingLogic::value_type> &&
-             std::is_base_of_v<ConstDefines<value_type>, RowMovingLogic> &&
-             std::is_base_of_v<DefaultDefines<value_type>, OtherRowMovingLogic>
+  template <detail::FloatingOrComplexType>
+  friend class linalg::Matrix;
+
+  RowIteratorLogic() = default;
+
+  template <typename OtherRowIteratorLogic>
+    requires std::is_same_v<value_type, typename OtherRowIteratorLogic::value_type> &&
+             std::is_base_of_v<ConstDefines<value_type>, RowIteratorLogic> &&
+             std::is_base_of_v<DefaultDefines<value_type>, OtherRowIteratorLogic>
   // NOLINTNEXTLINE(google-explicit-constructor)
-  explicit RowMovingLogic(const OtherRowMovingLogic& other) : Accessor{other.storage_iter_} {}
+  RowIteratorLogic(const OtherRowIteratorLogic& other) : Accessor{other.storage_iter_} {}
 
-  RowMovingLogic& operator++() {
+  RowIteratorLogic& operator++() {
     ++storage_iter_;
     return *this;
   }
 
-  RowMovingLogic operator++(int) {
-    RowMovingLogic tmp = *this;
+  RowIteratorLogic operator++(int) {
+    RowIteratorLogic tmp = *this;
     ++(*this);
     return tmp;
   }
 
-  RowMovingLogic& operator--() {
+  RowIteratorLogic& operator--() {
     --storage_iter_;
     return *this;
   }
 
-  RowMovingLogic operator--(int) {
-    RowMovingLogic tmp = *this;
+  RowIteratorLogic operator--(int) {
+    RowIteratorLogic tmp = *this;
     --(*this);
     return tmp;
   }
 
-  RowMovingLogic& operator+=(Size n) {
+  RowIteratorLogic& operator+=(Size n) {
     storage_iter_ += n;
     return *this;
   }
 
-  friend RowMovingLogic operator+(RowMovingLogic lhs, Size n) {
+  friend RowIteratorLogic operator+(RowIteratorLogic lhs, Size n) {
     lhs += n;
     return lhs;
   }
 
-  friend RowMovingLogic operator+(Size n, RowMovingLogic rhs) {
+  friend RowIteratorLogic operator+(Size n, RowIteratorLogic rhs) {
     rhs += n;
     return rhs;
   }
 
-  RowMovingLogic& operator-=(Size n) {
+  RowIteratorLogic& operator-=(Size n) {
     storage_iter_ -= n;
     return *this;
   }
 
-  friend RowMovingLogic operator-(RowMovingLogic lhs, Size n) {
+  friend RowIteratorLogic operator-(RowIteratorLogic lhs, Size n) {
     lhs -= n;
     return lhs;
   }
 
-  friend Difference operator-(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+  friend Difference operator-(const RowIteratorLogic& lhs, const RowIteratorLogic& rhs) {
     return lhs.storage_iter_ - rhs.storage_iter_;
   }
 
-  friend std::strong_ordering operator<=>(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+  friend std::strong_ordering operator<=>(const RowIteratorLogic& lhs, const RowIteratorLogic& rhs) {
     return lhs.storage_iter_ <=> rhs.storage_iter_;
   }
 
-  friend bool operator==(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+  friend bool operator==(const RowIteratorLogic& lhs, const RowIteratorLogic& rhs) {
     return lhs.storage_iter_ == rhs.storage_iter_;
   }
 
-  friend bool operator!=(const RowMovingLogic& lhs, const RowMovingLogic& rhs) {
+  friend bool operator!=(const RowIteratorLogic& lhs, const RowIteratorLogic& rhs) {
     return !(lhs == rhs);
   }
 
   reference operator[](difference_type n) const {
     return *(*this + n);
   }
+
+ private:
+  explicit RowIteratorLogic(MyStorageIterator iter) : Accessor{iter} {}
 };
 
 template <typename Scalar>
-using RowIterator = RowMovingLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
+using RowIterator = RowIteratorLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
 
 template <typename Scalar>
-using ConstRowIterator = RowMovingLogic<DefaultAccessor<ConstDefines<Scalar>>>;
+using ConstRowIterator = RowIteratorLogic<DefaultAccessor<ConstDefines<Scalar>>>;
 
 template <typename Scalar>
-using ColBlockIterator = ColBlockMovingLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
+using ColBlockIterator = ColBlockIteratorLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
 
 template <typename Scalar>
-using ConstColBlockIterator = ColBlockMovingLogic<DefaultAccessor<ConstDefines<Scalar>>>;
+using ConstColBlockIterator = ColBlockIteratorLogic<DefaultAccessor<ConstDefines<Scalar>>>;
 
 template <typename Scalar>
-using RowBlockIterator = RowBlockMovingLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
+using RowBlockIterator = RowBlockIteratorLogic<DefaultAccessor<DefaultDefines<Scalar>>>;
 
 template <typename Scalar>
-using ConstRowBlockIterator = RowBlockMovingLogic<DefaultAccessor<ConstDefines<Scalar>>>;
+using ConstRowBlockIterator = RowBlockIteratorLogic<DefaultAccessor<ConstDefines<Scalar>>>;
 
 // EXPERIMENTAL CODE (не смог сделать обертку над всеми итераторами, описал в ПР):
 
