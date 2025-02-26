@@ -1,0 +1,16 @@
+BasedOnStyle: Google
+Standard: c++20
+IndentWidth: 2
+AccessModifierOffset: -1
+UseTab: Never
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakConstructorInitializers: BeforeComma
+SortIncludes: true
+ColumnLimit: 120
+DerivePointerAlignment: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+AlignConsecutiveAssignments: true
+InsertNewlineAtEOF: true
