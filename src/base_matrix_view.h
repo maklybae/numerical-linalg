@@ -235,6 +235,13 @@ class BaseMatrixView {
     return *this;
   }
 
+  // MatrixView-specific functions.
+
+  BaseMatrixView& Transpose() {
+    state_.SwitchTransposed();
+    return *this;
+  }
+
  private:
   bool IsValidMatrixView() const {
     return ptr_ != nullptr && Rows() > 0 && Cols() > 0;
@@ -307,21 +314,13 @@ class BaseMatrixView {
   }
 
   BlockIterator BaseColWiseEnd() const {
-    return BlockIterator{StorageIteratorColWiseEnd(),
-                         ColWiseStepSize(),
-                         ColWiseMaxStep(),
-                         ColWiseShift(),
-                         StorageIteratorColWiseEnd(),
-                         Rows()};
+    return BlockIterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                         StorageIteratorColWiseEnd(), range_.Rows()};
   }
 
   ConstBlockIterator BaseColWiseCEnd() const {
-    return ConstBlockIterator{StorageIteratorColWiseEnd(),
-                              ColWiseStepSize(),
-                              ColWiseMaxStep(),
-                              ColWiseShift(),
-                              StorageIteratorColWiseEnd(),
-                              Rows()};
+    return ConstBlockIterator{StorageIteratorColWiseEnd(), ColWiseStepSize(), ColWiseMaxStep(), ColWiseShift(),
+                              StorageIteratorColWiseEnd(), range_.Rows()};
   }
 
   MyMatrix* ptr_{};

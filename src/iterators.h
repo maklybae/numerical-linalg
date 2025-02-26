@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "core_types.h"
-#include "matrix_types.h"
+#include "matrix_types.h"  // IWYU pragma: keep
 #include "scalar_types.h"
 
 namespace linalg {

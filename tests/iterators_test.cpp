@@ -203,4 +203,35 @@ TEST(IteratorAliases, NonConstToConstCast) {
   linalg::detail::iterators::ConstBlockIterator<double> const_col_block_iter{col_block_iter};
 }
 
+TEST(MatrixViewState, TransposeIterators) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  MatrixView<double> view{matrix};
+  MatrixView<double> transposed_view{view.Transpose()};
+
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(transposed_view.begin(), transposed_view.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixViewState, TransposeEqual) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  MatrixView<double> view{matrix};
+  view.Transpose();
+
+  Matrix<double> expected{{1, 4, 7}, {2, 5, 8}, {3, 6, 9}};
+  EXPECT_EQ(view, expected);
+}
+
+TEST(MatrixViewState, TransposeReverseIterators) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  MatrixView<double> view{matrix};
+  MatrixView<double> transposed_view{view.Transpose()};
+
+  std::vector<double> expected{9, 6, 3, 8, 5, 2, 7, 4, 1};
+  std::vector<double> actual(transposed_view.RowWiseRBegin(), transposed_view.RowWiseREnd());
+
+  EXPECT_EQ(actual, expected);
+}
+
 }  // namespace

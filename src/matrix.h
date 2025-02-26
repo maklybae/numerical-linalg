@@ -17,7 +17,8 @@
 namespace linalg {
 template <detail::FloatingOrComplexType Scalar>
 class Matrix {
-  static_assert(!std::is_const_v<Scalar>, "Scalar type must not be const");
+  static_assert(!std::is_const_v<Scalar> && !std::is_volatile_v<Scalar>,
+                "Scalar type must not be const and not be volatile");
 
   using StorageType          = detail::Storage<Scalar>;
   using UnderlyingSize       = StorageType::size_type;
@@ -273,18 +274,18 @@ class Matrix {
 
   // Comparison operators.
 
-  friend bool operator==(const Matrix& lhs, const Matrix& rhs) {
-    if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
-      return false;
-    }
+  // friend bool operator==(const Matrix& lhs, const Matrix& rhs) {
+  //   if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
+  //     return false;
+  //   }
 
-    return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-                      [](Scalar a, Scalar b) { return detail::ApproxEqual(a, b); });
-  }
+  //   return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
+  //                     [](Scalar a, Scalar b) { return detail::ApproxEqual(a, b); });
+  // }
 
-  friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
-    return !(lhs == rhs);
-  }
+  // friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
+  //   return !(lhs == rhs);
+  // }
 
   // Functionals.
 
@@ -437,6 +438,22 @@ Matrix<typename MatrixT::value_type> operator-(const MatrixT& matrix) {
   Matrix<typename MatrixT::value_type> result(matrix);
   result.Apply(std::negate<>{});
   return result;
+}
+
+// Compare operators.
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+bool operator==(const LhsT& lhs, const RhsT& rhs) {
+  if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
+    return false;
+  }
+
+  return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
+                    [](typename LhsT::value_type a, typename RhsT::value_type b) { return detail::ApproxEqual(a, b); });
+}
+
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+bool operator!=(const LhsT& lhs, const RhsT& rhs) {
+  return !(lhs == rhs);
 }
 
 // In-place binary operators.
