@@ -1,6 +1,7 @@
-#include "../src/matrix.h"
-
 #include <gtest/gtest.h>
+
+#include <complex>
+#include <type_traits>
 
 #include "linalg.h"
 
@@ -524,6 +525,182 @@ TEST(MatrixArithmetic, OutOfPlaceScalarDifferentScalarDivision) {
   EXPECT_EQ(quotient.Cols(), 3);
   // EXPECT_FALSE(quotient.empty());
   EXPECT_EQ(quotient, expected);
+}
+
+TEST(MatrixOperations, FPTranspose) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto transposed = linalg::Transposed(matrix);
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPTransposeConst) {
+  const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto transposed = linalg::Transposed(matrix);
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPTransposeConstView) {
+  const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto view       = linalg::ConstMatrixView<double>(matrix);
+  auto transposed = linalg::Transposed(view);
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPTransposeView) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto view       = linalg::MatrixView<double>(matrix);
+  auto transposed = linalg::Transposed(view);
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CTranspose) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto transposed = linalg::Transposed(matrix);
+  std::vector<std::complex<double>> expected{{1, 1}, {4, 4}, {7, 7}, {2, 2}, {5, 5}, {8, 8}, {3, 3}, {6, 6}, {9, 9}};
+  std::vector<std::complex<double>> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CTransposeConst) {
+  const Matrix<std::complex<double>> matrix{
+      {{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto transposed = linalg::Transposed(matrix);
+  std::vector<std::complex<double>> expected{{1, 1}, {4, 4}, {7, 7}, {2, 2}, {5, 5}, {8, 8}, {3, 3}, {6, 6}, {9, 9}};
+  std::vector<std::complex<double>> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CTransposeConstView) {
+  const Matrix<std::complex<double>> matrix{
+      {{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto view       = linalg::ConstMatrixView<std::complex<double>>(matrix);
+  auto transposed = linalg::Transposed(view);
+  std::vector<std::complex<double>> expected{{1, 1}, {4, 4}, {7, 7}, {2, 2}, {5, 5}, {8, 8}, {3, 3}, {6, 6}, {9, 9}};
+  std::vector<std::complex<double>> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CTransposeView) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto view       = linalg::MatrixView<std::complex<double>>(matrix);
+  auto transposed = linalg::Transposed(view);
+  std::vector<std::complex<double>> expected{{1, 1}, {4, 4}, {7, 7}, {2, 2}, {5, 5}, {8, 8}, {3, 3}, {6, 6}, {9, 9}};
+  std::vector<std::complex<double>> actual(transposed.begin(), transposed.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPConjugate) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto conjugated = linalg::Conjugated(matrix);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::MatrixView<double>>);
+
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPConjugateConst) {
+  const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto conjugated = linalg::Conjugated(matrix);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::ConstMatrixView<double>>);
+
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPConjugateConstView) {
+  const Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto view       = linalg::ConstMatrixView<double>(matrix);
+  auto conjugated = linalg::Conjugated(view);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::ConstMatrixView<double>>);
+
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, FPConjugateView) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  auto view       = linalg::MatrixView<double>(matrix);
+  auto conjugated = linalg::Conjugated(view);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::MatrixView<double>>);
+
+  std::vector<double> expected{1, 4, 7, 2, 5, 8, 3, 6, 9};
+  std::vector<double> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CConjugate) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto conjugated = linalg::Conjugated(matrix);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::Matrix<std::complex<double>>>);
+
+  std::vector<std::complex<double>> expected{{1, -1}, {4, -4}, {7, -7}, {2, -2}, {5, -5},
+                                             {8, -8}, {3, -3}, {6, -6}, {9, -9}};
+  std::vector<std::complex<double>> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CConjugateConst) {
+  const Matrix<std::complex<double>> matrix{
+      {{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto conjugated = linalg::Conjugated(matrix);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::Matrix<std::complex<double>>>);
+
+  std::vector<std::complex<double>> expected{{1, -1}, {4, -4}, {7, -7}, {2, -2}, {5, -5},
+                                             {8, -8}, {3, -3}, {6, -6}, {9, -9}};
+  std::vector<std::complex<double>> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CConjugateConstView) {
+  const Matrix<std::complex<double>> matrix{
+      {{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto view       = linalg::ConstMatrixView<std::complex<double>>(matrix);
+  auto conjugated = linalg::Conjugated(view);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::Matrix<std::complex<double>>>);
+
+  std::vector<std::complex<double>> expected{{1, -1}, {4, -4}, {7, -7}, {2, -2}, {5, -5},
+                                             {8, -8}, {3, -3}, {6, -6}, {9, -9}};
+  std::vector<std::complex<double>> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixOperations, CConjugateView) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}, {{7, 7}, {8, 8}, {9, 9}}};
+  auto view       = linalg::MatrixView<std::complex<double>>(matrix);
+  auto conjugated = linalg::Conjugated(view);
+
+  // Issue described in src/matrix.h.
+  static_assert(std::is_same_v<decltype(conjugated), linalg::Matrix<std::complex<double>>>);
+
+  std::vector<std::complex<double>> expected{{1, -1}, {4, -4}, {7, -7}, {2, -2}, {5, -5},
+                                             {8, -8}, {3, -3}, {6, -6}, {9, -9}};
+  std::vector<std::complex<double>> actual(conjugated.begin(), conjugated.end());
+  EXPECT_EQ(actual, expected);
 }
 
 }  // namespace
