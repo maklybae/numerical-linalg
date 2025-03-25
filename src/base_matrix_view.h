@@ -87,6 +87,25 @@ class BaseMatrixView {
     assert(range.ColEnd() <= ptr_->Cols() && "Col end index out of bounds");
   }
 
+  BaseMatrixView(BaseMatrixView matrix_view, SubmatrixRange range)
+      : ptr_{matrix_view.ptr_}, state_{matrix_view.state_} {
+    assert(matrix_view.IsValidMatrixView() && "Matrix view should not be empty");
+    assert(range.RowBegin() < matrix_view.Rows() && "Row begin index out of bounds");
+    assert(range.RowEnd() <= matrix_view.Rows() && "Row end index out of bounds");
+    assert(range.ColBegin() < matrix_view.Cols() && "Col begin index out of bounds");
+    assert(range.ColEnd() <= matrix_view.Cols() && "Col end index out of bounds");
+
+    if (state_.IsTransposed()) {
+      range_ = SubmatrixRange::FromBeginSize(
+          ERowBegin{matrix_view.range_.ColBegin() + range.RowBegin()}, ERows{range.Rows()},
+          EColBegin{matrix_view.range_.RowBegin() + range.ColBegin()}, ECols{range.Cols()});
+    } else {
+      range_ = SubmatrixRange::FromBeginSize(
+          ERowBegin{matrix_view.range_.RowBegin() + range.RowBegin()}, ERows{range.Rows()},
+          EColBegin{matrix_view.range_.ColBegin() + range.ColBegin()}, ECols{range.Cols()});
+    }
+  }
+
   BaseMatrixView(MyMatrix&&) = delete;
 
   ReturnType operator()(size_type row, size_type col) const {
@@ -233,6 +252,12 @@ class BaseMatrixView {
       (*this)(i, i) = op((*this)(i, i));
     }
     return *this;
+  }
+
+  // Submatrix getters.
+
+  BaseMatrixView Submatrix(SubmatrixRange range) const {
+    return BaseMatrixView{*this, range};
   }
 
   // MatrixView-specific functions.

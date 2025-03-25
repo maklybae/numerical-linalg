@@ -11,8 +11,10 @@
 #include "core_types.h"
 #include "iterators.h"
 #include "matrix_types.h"
+#include "matrix_view.h"
 #include "scalar_types.h"
 #include "scalar_utils.h"
+#include "submatrix_range.h"
 
 namespace linalg {
 template <detail::FloatingOrComplexType Scalar>
@@ -306,6 +308,15 @@ class Matrix {
       (*this)(i, i) = op((*this)(i, i));
     }
     return *this;
+  }
+
+  // Submatrix getters.
+  MatrixView<Scalar> Submatrix(SubmatrixRange range) {
+    return MatrixView<Scalar>(*this, range);
+  }
+
+  ConstMatrixView<Scalar> Submatrix(SubmatrixRange range) const {
+    return ConstMatrixView<Scalar>(*this, range);
   }
 
   // Static creation methods.
