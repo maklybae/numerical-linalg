@@ -1,6 +1,8 @@
 #ifndef MATRIX_TYPES_H
 #define MATRIX_TYPES_H
 
+#include <type_traits>
+
 #include "core_types.h"
 #include "scalar_types.h"
 
@@ -52,6 +54,9 @@ concept MatrixType = kIsMatrixV<Scalar>;
 
 template <typename Scalar>
 concept MutableMatrixType = kIsMutableMatrixV<Scalar>;
+
+template <typename MatrixT>
+concept ComplexMatrixType = MatrixType<MatrixT> && detail::kIsComplexV<typename MatrixT::value_type>;
 
 template <MatrixType LhsT, MatrixType RhsT>
 using CommonValueType = std::common_type_t<typename LhsT::value_type, typename RhsT::value_type>;

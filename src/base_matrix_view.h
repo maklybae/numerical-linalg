@@ -17,9 +17,10 @@ template <typename Scalar, ConstnessEnum Constness>
 class BaseMatrixView {
   static constexpr bool kIsConst = Constness == ConstnessEnum::kConst;
 
-  using MyMatrix                = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
-  using ReturnType              = std::conditional_t<kIsConst, Scalar, Scalar&>;
-  using StorageIterator         = MyMatrix::StorageIterator;
+  using MyMatrix   = std::conditional_t<kIsConst, const Matrix<Scalar>, Matrix<Scalar>>;
+  using ReturnType = std::conditional_t<kIsConst, Scalar, Scalar&>;
+  using StorageIterator =
+      std::conditional_t<kIsConst, typename MyMatrix::ConstStorageIterator, typename MyMatrix::StorageIterator>;
   using BasicBlockIterator      = iterators::BlockIterator<Scalar>;
   using BasicConstBlockIterator = iterators::ConstBlockIterator<Scalar>;
 
@@ -66,6 +67,8 @@ class BaseMatrixView {
       : ptr_{&matrix}, range_{SubmatrixRange::FullMatrix(ERows{matrix.Rows()}, ECols{matrix.Cols()})} {
     assert(matrix.IsValidMatrix() && "Matrix data should not be empty");
   }
+
+  // Non-const to const view conversions.
 
   // NOLINTNEXTLINE(google-explicit-constructor)
   BaseMatrixView(BaseMatrixView<Scalar, ConstnessEnum::kNonConst>& other)

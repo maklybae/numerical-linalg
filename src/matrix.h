@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <initializer_list>
 #include <iterator>
 #include <type_traits>
@@ -62,7 +63,9 @@ class Matrix {
   // Use static cast to call private helper ctor Matrix(size_type, size_type).
   Matrix(ERows rows, ECols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
 
-  // explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {}
+  explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {
+    assert(IsValidMatrix() && "Matrix data should not be empty");
+  }
 
   Matrix(std::initializer_list<std::initializer_list<Scalar>> list) {
     rows_ = ToSizeType(list.size());
@@ -578,6 +581,43 @@ Matrix<typename MatrixT::value_type> operator/(const MatrixT& lhs, typename Matr
   Matrix<typename MatrixT::value_type> result(lhs);
   result /= scalar;
   return result;
+}
+
+// Conjugate transpose and transpose.
+// Transposed functions for MatrixView and ConstMatrixView is in matrix_view.h.
+// Conjugated returns view for fp matrices and matrix for complex matrices.
+// Reasons for this is unable to change conjugated state in matrix view.
+
+template <typename Scalar>
+MatrixView<Scalar> Transposed(Matrix<Scalar>& matrix) {
+  auto view = MatrixView<Scalar>{matrix};
+  return Transposed(view);
+}
+
+template <typename Scalar>
+ConstMatrixView<Scalar> Transposed(const Matrix<Scalar>& matrix) {
+  auto view = ConstMatrixView<Scalar>{matrix};
+  return Transposed(view);
+}
+
+template <std::floating_point FPScalar>
+MatrixView<FPScalar> Conjugated(Matrix<FPScalar>& matrix) {
+  return Transposed(matrix);
+}
+
+template <std::floating_point FPScalar>
+ConstMatrixView<FPScalar> Conjugated(const Matrix<FPScalar>& matrix) {
+  return Transposed(matrix);
+}
+
+template <detail::ComplexMatrixType CMatrixT>
+Matrix<typename CMatrixT::value_type> Conjugated(const CMatrixT& matrix) {
+  using Scalar = typename CMatrixT::value_type;
+
+  auto view        = Transposed(matrix);
+  auto conj_matrix = Matrix<Scalar>(view);
+  conj_matrix.Apply([](Scalar value) { return std::conj(value); });
+  return conj_matrix;
 }
 
 }  // namespace linalg
