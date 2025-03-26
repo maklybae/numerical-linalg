@@ -63,6 +63,10 @@ class Matrix {
   // Use static cast to call private helper ctor Matrix(size_type, size_type).
   Matrix(ERows rows, ECols cols) : Matrix(static_cast<size_type>(rows), static_cast<size_type>(cols)) {}
 
+  explicit Matrix(MatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {
+    assert(IsValidMatrix() && "Matrix data should not be empty");
+  }
+
   explicit Matrix(ConstMatrixView<Scalar> view) : rows_{view.Rows()}, data_(view.begin(), view.end()) {
     assert(IsValidMatrix() && "Matrix data should not be empty");
   }
@@ -622,18 +626,32 @@ Matrix<typename CMatrixT::value_type> Conjugated(const CMatrixT& matrix) {
 
 // Vector norm.
 
-template <detail::MatrixType MatrixT>
-detail::UnderlyingScalarT<typename MatrixT::value_type> EuclideanVectorNorm(const MatrixT& matrix) {
-  assert((matrix.Cols() == 1 || matrix.Rows() == 1) && "Matrix should be a vector");
+template <detail::MatrixType VectorT>
+detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(const VectorT& vector) {
+  assert((vector.Cols() == 1 || vector.Rows() == 1) && "Matrix should be a vector");
 
-  using Scalar = detail::UnderlyingScalarT<typename MatrixT::value_type>;
+  using Scalar = detail::UnderlyingScalarT<typename VectorT::value_type>;
 
   Scalar result{};
-  for (const auto& value : matrix) {
+  for (const auto& value : vector) {
     result += value * value;
   }
 
   return std::sqrt(result);
+}
+
+template <detail::MatrixType VectorT>
+void NormalizeVector(VectorT& vector) {
+  assert((vector.Cols() == 1 || vector.Rows() == 1) && "Matrix should be a vector");
+
+  using Scalar = detail::UnderlyingScalarT<typename VectorT::value_type>;
+
+  auto norm = EuclideanVectorNorm(vector);
+  if (detail::ApproxZero(norm)) {
+    return;
+  }
+
+  vector.Apply([norm](Scalar value) { return value / norm; });
 }
 
 }  // namespace linalg
