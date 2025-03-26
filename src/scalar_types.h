@@ -23,7 +23,7 @@ constexpr bool kIsComplexV = IsComplex<T>::value;
 template <typename T>
 concept FloatingOrComplexType = std::is_floating_point_v<T> || kIsComplexV<T>;
 
-// Limits
+// Limits: need to control epsilon for different types for debugging and testing.
 
 template <FloatingOrComplexType T>
 struct NumericLimits {

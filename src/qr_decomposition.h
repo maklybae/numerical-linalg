@@ -17,6 +17,7 @@ struct QRDecompositionResult {
   Matrix<Scalar> r;
 };
 
+// TODO: Use MatrixView instead of MutableMatrixType concept.
 template <detail::MatrixType MatrixT>
 QRDecompositionResult<typename MatrixT::value_type> QRDecomposition(const MatrixT& matrix) {
   using Scalar = typename MatrixT::value_type;

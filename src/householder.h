@@ -7,12 +7,15 @@
 
 namespace linalg {
 
+// TODO: Use MatrixView instead of MutableMatrixType concept?
+// Possible reason: How to use with r-value views? e.g. HouseHolderReflectVectorReduce(matrix.Submatrix(...));
 template <detail::MutableMatrixType VectorT>
 void HouseholderReflectVectorReduce(VectorT& vector) {
   vector(0, 0) -= -detail::Sign(vector(0, 0)) * EuclideanVectorNorm(vector);
   NormalizeVector(vector);
 }
 
+// TODO: Use MatrixView instead of MutableMatrixType concept?
 template <detail::MutableMatrixType MatrixT, detail::MatrixType VectorT>
 void ApplyHouseholderLeft(MatrixT& matrix, const VectorT& vector) {
   using Scalar = detail::CommonValueType<MatrixT, VectorT>;
