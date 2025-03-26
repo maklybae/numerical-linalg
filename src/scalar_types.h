@@ -23,6 +23,36 @@ constexpr bool kIsComplexV = IsComplex<T>::value;
 template <typename T>
 concept FloatingOrComplexType = std::is_floating_point_v<T> || kIsComplexV<T>;
 
+// Limits
+
+template <FloatingOrComplexType T>
+struct NumericLimits {
+  static constexpr T kEpsilon = std::numeric_limits<T>::epsilon();
+};
+
+template <>
+struct NumericLimits<float> {
+  static constexpr float kEpsilon = 1e-6f;
+};
+
+template <>
+struct NumericLimits<double> {
+  static constexpr double kEpsilon = 1e-11;
+};
+
+template <>
+struct NumericLimits<long double> {
+  static constexpr long double kEpsilon = 1e-14L;
+};
+
+template <FloatingOrComplexType T>
+struct NumericLimits<std::complex<T>> {
+  static constexpr T kEpsilon = NumericLimits<T>::kEpsilon;
+};
+
+template <FloatingOrComplexType T>
+constexpr T kEpsilon = NumericLimits<T>::kEpsilon;
+
 // Issue with single template using and std::conditional_t:
 // T::value_type is evaluated for built-in types despite conditional branch.
 // This is a workaround.
