@@ -620,6 +620,22 @@ Matrix<typename CMatrixT::value_type> Conjugated(const CMatrixT& matrix) {
   return conj_matrix;
 }
 
+// Vector norm.
+
+template <detail::MatrixType MatrixT>
+detail::UnderlyingScalarT<typename MatrixT::value_type> EuclideanVectorNorm(const MatrixT& matrix) {
+  assert((matrix.Cols() == 1 || matrix.Rows() == 1) && "Matrix should be a vector");
+
+  using Scalar = detail::UnderlyingScalarT<typename MatrixT::value_type>;
+
+  Scalar result{};
+  for (const auto& value : matrix) {
+    result += value * value;
+  }
+
+  return std::sqrt(result);
+}
+
 }  // namespace linalg
 
 #endif  // MATRIX_H

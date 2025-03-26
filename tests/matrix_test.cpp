@@ -703,4 +703,34 @@ TEST(MatrixOperations, CConjugateView) {
   EXPECT_EQ(actual, expected);
 }
 
+TEST(MatrixOperations, FPEuclideanNorm) {
+  Matrix<double> matrix{{1, 2, 3}};
+
+  double norm = linalg::EuclideanVectorNorm(matrix);
+  EXPECT_DOUBLE_EQ(norm, std::sqrt(14.0));
+}
+
+TEST(MatrixOperations, FPEuclideanNormConst) {
+  const Matrix<double> matrix{{1, 2, 3}};
+
+  double norm = linalg::EuclideanVectorNorm(matrix);
+  EXPECT_DOUBLE_EQ(norm, std::sqrt(14.0));
+}
+
+TEST(MatrixOperations, FPEuclideanNormConstView) {
+  const Matrix<double> matrix{{1, 2, 3}};
+  auto view = linalg::ConstMatrixView<double>(matrix);
+
+  double norm = linalg::EuclideanVectorNorm(view);
+  EXPECT_DOUBLE_EQ(norm, std::sqrt(14.0));
+}
+
+TEST(MatrixOperations, FPEuclideanNormView) {
+  Matrix<double> matrix{{1, 2, 3}};
+  auto view = linalg::MatrixView<double>(matrix);
+
+  double norm = linalg::EuclideanVectorNorm(view);
+  EXPECT_DOUBLE_EQ(norm, std::sqrt(14.0));
+}
+
 }  // namespace
