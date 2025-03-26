@@ -25,7 +25,16 @@ void ApplyHouseholderLeft(MatrixT& matrix, const VectorT& vector) {
   matrix -= (Scalar{2} * vector) * (Conjugated(vector) * matrix);
 }
 
-// TODO: Right reflection
+// TODO: Use MatrixView instead of MutableMatrixType concept?
+template <detail::MutableMatrixType MatrixT, detail::MatrixType VectorT>
+void ApplyHouseholderRight(MatrixT& matrix, const VectorT& vector) {
+  using Scalar = detail::CommonValueType<MatrixT, VectorT>;
+
+  assert(matrix.Cols() == vector.Rows() && "Matrix and vector should have the same number of columns");
+
+  matrix -= (matrix * vector) * (Scalar{2} * Conjugated(vector));
+}
+
 }  // namespace linalg
 
 #endif  // HOUSEHOLDER_H

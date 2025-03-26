@@ -289,7 +289,7 @@ using BlockIterator = BlockIteratorLogic<DefaultAccessor<DefaultDefines<Scalar>>
 template <typename Scalar>
 using ConstBlockIterator = BlockIteratorLogic<DefaultAccessor<ConstDefines<Scalar>>>;
 
-// EXPERIMENTAL CODE (не смог сделать обертку над всеми итераторами, описал в ПР):
+// TODO: EXPERIMENTAL CODE (не смог сделать обертку над всеми итераторами, описал в ПР):
 
 // template <typename Scalar, template <typename> class Defines, template <typename> class Accessor,
 //           template <typename> class MovingLogic>

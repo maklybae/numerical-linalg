@@ -25,7 +25,8 @@ QRDecompositionResult<typename MatrixT::value_type> QRDecomposition(const Matrix
   auto q = Matrix<Scalar>::Identity(matrix.Rows());
   auto r = Matrix<Scalar>{matrix};
 
-  for (Index i = 0; i < std::min(matrix.Rows(), matrix.Cols()); ++i) {
+  // TODO: +- 1
+  for (Index i = 0; i < std::min(matrix.Rows(), matrix.Cols()) - 1; ++i) {
     auto first_vector_subrange =
         SubmatrixRange::FromBeginSize(ERowBegin{i}, ERows{r.Rows() - i}, EColBegin{i}, ECols{1});
 
