@@ -326,6 +326,22 @@ class Matrix {
     return ConstMatrixView<Scalar>(*this, range);
   }
 
+  MatrixView<Scalar> Row(Index row) {
+    return Submatrix(SubmatrixRange::FromBeginSize(ERowBegin{row}, ERows{1}, EColBegin{0}, ECols{Cols()}));
+  }
+
+  ConstMatrixView<Scalar> Row(Index row) const {
+    return Submatrix(SubmatrixRange::FromBeginSize(ERowBegin{row}, ERows{1}, EColBegin{0}, ECols{Cols()}));
+  }
+
+  MatrixView<Scalar> Col(Index col) {
+    return Submatrix(SubmatrixRange::FromBeginSize(ERowBegin{0}, ERows{Rows()}, EColBegin{col}, ECols{1}));
+  }
+
+  ConstMatrixView<Scalar> Col(Index col) const {
+    return Submatrix(SubmatrixRange::FromBeginSize(ERowBegin{0}, ERows{Rows()}, EColBegin{col}, ECols{1}));
+  }
+
   // Static creation methods.
 
   static Matrix Identity(size_type size) {
@@ -640,7 +656,7 @@ detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(cons
   return std::sqrt(result);
 }
 
-template <detail::MatrixType VectorT>
+template <detail::MutableMatrixType VectorT>
 void NormalizeVector(VectorT& vector) {
   assert((vector.Cols() == 1 || vector.Rows() == 1) && "Matrix should be a vector");
 
@@ -653,6 +669,26 @@ void NormalizeVector(VectorT& vector) {
 
   vector.Apply([norm](Scalar value) { return value / norm; });
 }
+
+namespace detail {
+
+// WARNING: This function returns copy of matrix with omitting imaginary part.
+// Returns copy on matrix with initially floating point type.
+template <detail::MatrixType MatrixT>
+Matrix<UnderlyingScalarT<typename MatrixT::value_type>> CastToUnderlyingScalarMatrix(const MatrixT& matrix) {
+  return matrix;
+}
+
+template <detail::ComplexMatrixType MatrixT>
+Matrix<UnderlyingScalarT<typename MatrixT::value_type>> CastToUnderlyingScalarMatrix(const MatrixT& matrix) {
+  using Scalar = UnderlyingScalarT<typename MatrixT::value_type>;
+
+  Matrix<Scalar> result(ERows{matrix.Rows()}, ECols{matrix.Cols()});
+  result.Apply([](Scalar value) { return value.real(); });
+  return result;
+}
+
+}  // namespace detail
 
 }  // namespace linalg
 

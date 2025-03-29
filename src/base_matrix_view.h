@@ -55,10 +55,11 @@ class BaseMatrixView {
       : ptr_{std::exchange(other.ptr_, nullptr)}
       , range_{std::exchange(other.range_, {})}
       , state_{std::exchange(other.state_, {})} {}
-  BaseMatrixView& operator=(BaseMatrixView&&) noexcept {
-    BaseMatrixView tmp = std::move(*this);
+  BaseMatrixView& operator=(BaseMatrixView&& other) noexcept {
+    BaseMatrixView tmp = std::move(other);
     std::swap(ptr_, tmp.ptr_);
     std::swap(range_, tmp.range_);
+    std::swap(state_, tmp.state_);
     return *this;
   }
 
@@ -261,6 +262,14 @@ class BaseMatrixView {
 
   BaseMatrixView Submatrix(SubmatrixRange range) const {
     return BaseMatrixView{*this, range};
+  }
+
+  BaseMatrixView Row(Index row) const {
+    return Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{row}, ERowEnd{row + 1}, EColBegin{0}, EColEnd{Cols()}));
+  }
+
+  BaseMatrixView Col(Index col) const {
+    return Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{0}, ERowEnd{Rows()}, EColBegin{col}, EColEnd{col + 1}));
   }
 
   // MatrixView-specific functions.
