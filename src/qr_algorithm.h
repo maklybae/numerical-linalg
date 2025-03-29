@@ -23,7 +23,7 @@ template <detail::MatrixType MatrixT>
 EigenDecompositionResult<typename MatrixT::value_type> SymEigenDecomposition(const MatrixT& matrix,
                                                                              Size it_per_vec = 100) {
   // TODO: square matrix assert
-  // TODO: symmetric matrix assert (include square matrix assert)
+  // TODO: symmetric (hermitian) matrix assert (include square matrix assert)
 
   auto [q, d] = GetHeisenbergForm(matrix);  // q = Q_1 * ... * Q_n
   for (Size i = 0; i < it_per_vec * matrix.Cols(); ++i) {
