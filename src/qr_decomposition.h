@@ -46,6 +46,27 @@ QRDecompositionResult<typename MatrixT::value_type> QRDecomposition(const Matrix
   return QRDecompositionResult<Scalar>{std::move(q), std::move(r)};
 }
 
+// Givens QR decomposition rarely used as it's complexity is worse than Householder QR decomposition.
+// Use GivensQRDecomposition only for small or sparse matrices.
+template <detail::MatrixType MatrixT>
+QRDecompositionResult<typename MatrixT::value_type> GivensQRDecomposition(const MatrixT& matrix) {
+  using Scalar = typename MatrixT::value_type;
+
+  auto q = Matrix<Scalar>::Identity(matrix.Rows());
+  auto r = Matrix<Scalar>{matrix};
+
+  for (Index j = 0; j < std::min(matrix.Rows(), matrix.Cols()); ++j) {
+    for (Index i = matrix.Rows() - 1; i - 1 > j; --i) {
+      auto params = GetZeroingGivensRotationParams(r(i - 1, j), r(i, j));
+      ApplyGivensRotationLeft(r, params, i - 1, i);
+      ApplyGivensRotationLeft(q, params, i - 1, i);
+    }
+  }
+
+  q = Matrix<Scalar>{Conjugated(q)};  // such operator= because Conjugated can be MatrixView or Matrix
+  return QRDecompositionResult<Scalar>{std::move(q), std::move(r)};
+}
+
 }  // namespace linalg
 
 #endif  // QR_DECOMPOSITION_H
