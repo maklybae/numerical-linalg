@@ -19,11 +19,6 @@ bool ApproxEqual(std::complex<T> lhs, std::complex<T> rhs, T epsilon = kEpsilon<
   return ApproxEqual(lhs.real(), rhs.real(), epsilon) && ApproxEqual(lhs.imag(), rhs.imag(), epsilon);
 }
 
-template <FloatingOrComplexType T>
-bool ApproxZero(T val, T epsilon = kEpsilon<T>) {
-  return ApproxEqual(val, T{0}, epsilon);
-}
-
 template <std::floating_point T>
 bool ApproxEqual(T lhs, std::complex<T> rhs, T epsilon = kEpsilon<T>) {
   return ApproxEqual(lhs, rhs.real(), epsilon) && ApproxZero(rhs.imag(), epsilon);
@@ -35,7 +30,12 @@ bool ApproxEqual(std::complex<T> lhs, T rhs, T epsilon = kEpsilon<T>) {
 }
 
 template <FloatingOrComplexType T>
-UnderlyingScalarT<T> Sign(T val) {
+bool ApproxZero(T val, UnderlyingScalarT<T> epsilon = kEpsilon<UnderlyingScalarT<T>>) {
+  return ApproxEqual(val, T{0}, epsilon);
+}
+
+template <FloatingOrComplexType T>
+T Sign(T val) {
   using ReturnType = UnderlyingScalarT<T>;
 
   if constexpr (std::is_floating_point_v<T>) {

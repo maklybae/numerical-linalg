@@ -50,7 +50,7 @@ GivensRotationParams<std::complex<UnderlyingScalar>> GetZeroingGivensRotationPar
     return {std::complex<UnderlyingScalar>{1}, std::complex<UnderlyingScalar>{0}};
   }
 
-  return {std::conj(a) / sqrt_norm, -std::conj(b) / sqrt_norm};
+  return {a / sqrt_norm, -b / sqrt_norm};
 }
 
 template <detail::MutableMatrixType MatrixT>
@@ -66,8 +66,8 @@ void ApplyGivensRotationLeft(MatrixT& matrix, GivensRotationParams<typename Matr
     Scalar tmp_j = matrix(row_j, j);
 
     if constexpr (detail::kIsComplexV<Scalar>) {
-      matrix(row_i, j) = std::conj(params.c) * tmp_i - params.s * tmp_j;
-      matrix(row_j, j) = std::conj(params.s) * tmp_i + std::conj(params.c) * tmp_j;
+      matrix(row_i, j) = std::conj(params.c) * tmp_i - std::conj(params.s) * tmp_j;
+      matrix(row_j, j) = params.s * tmp_i + params.c * tmp_j;
     } else {
       matrix(row_i, j) = params.c * tmp_i - params.s * tmp_j;
       matrix(row_j, j) = params.s * tmp_i + params.c * tmp_j;

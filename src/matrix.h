@@ -649,8 +649,8 @@ detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(cons
   using Scalar = detail::UnderlyingScalarT<typename VectorT::value_type>;
 
   Scalar result{};
-  for (const auto& value : vector) {
-    result += value * value;
+  for (auto value : vector) {
+    result += std::norm(value);
   }
 
   return std::sqrt(result);
@@ -658,9 +658,9 @@ detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(cons
 
 template <detail::MutableMatrixType VectorT>
 void NormalizeVector(VectorT& vector) {
+  using Scalar           = typename VectorT::value_type;
+  
   assert((vector.Cols() == 1 || vector.Rows() == 1) && "Matrix should be a vector");
-
-  using Scalar = detail::UnderlyingScalarT<typename VectorT::value_type>;
 
   auto norm = EuclideanVectorNorm(vector);
   if (detail::ApproxZero(norm)) {

@@ -34,7 +34,7 @@ QRDecompositionResult<typename MatrixT::value_type> QRDecomposition(const Matrix
     HouseholderReflectVectorReduce(reflect_vector);
 
     auto r_submatrix =
-        r.Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{i}, ERowEnd{q.Rows()}, EColBegin{i}, EColEnd{q.Cols()}));
+        r.Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{i}, ERowEnd{r.Rows()}, EColBegin{i}, EColEnd{r.Cols()}));
     ApplyHouseholderLeft(r_submatrix, reflect_vector);
     auto q_submatrix =
         q.Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{i}, ERowEnd{q.Rows()}, EColBegin{0}, EColEnd{q.Cols()}));
@@ -56,7 +56,7 @@ QRDecompositionResult<typename MatrixT::value_type> GivensQRDecomposition(const 
   auto r = Matrix<Scalar>{matrix};
 
   for (Index j = 0; j < std::min(matrix.Rows(), matrix.Cols()); ++j) {
-    for (Index i = matrix.Rows() - 1; i - 1 > j; --i) {
+    for (Index i = matrix.Rows() - 1; i > j; --i) {
       auto params = GetZeroingGivensRotationParams(r(i - 1, j), r(i, j));
       ApplyGivensRotationLeft(r, params, i - 1, i);
       ApplyGivensRotationLeft(q, params, i - 1, i);

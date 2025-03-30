@@ -42,7 +42,7 @@ struct NumericLimits<double> {
 
 template <>
 struct NumericLimits<long double> {
-  static constexpr long double kEpsilon = 1e-14L;
+  static constexpr long double kEpsilon = 1e-13L;
 };
 
 template <FloatingOrComplexType T>
