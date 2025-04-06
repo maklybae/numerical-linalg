@@ -77,6 +77,7 @@ BidiagonalizationResult<typename MatrixT::value_type> GetBidiagonalization(const
     }
   }
 
+  // Do not use move as construct result from rvalues
   return {Matrix<Scalar>{Conjugated(ut)}, detail::CastToUnderlyingScalarMatrix(b_noncast),
           Matrix<Scalar>{Conjugated(v)}};
 }
