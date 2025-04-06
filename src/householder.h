@@ -11,7 +11,7 @@ namespace linalg {
 // Possible reason: How to use with r-value views? e.g. HouseHolderReflectVectorReduce(matrix.Submatrix(...));
 template <detail::MutableMatrixType VectorT>
 void HouseholderReflectVectorReduce(VectorT& vector) {
-  vector(0, 0) -= -detail::Sign(vector(0, 0)) * EuclideanVectorNorm(vector);
+  vector(0, 0) -= detail::Sign(vector(0, 0)) * EuclideanVectorNorm(vector);
   NormalizeVector(vector);
 }
 
