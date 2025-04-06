@@ -5,6 +5,7 @@
 #include <cassert>
 #include <concepts>
 #include <initializer_list>
+#include <iostream>
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -456,6 +457,9 @@ class Matrix {
 };
 
 namespace detail {
+
+// Not public functionals.
+
 template <typename BinaryOp, MutableMatrixType LhsT, MatrixType RhsT>
 LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
   assert(lhs.Rows() == rhs.Rows() && "Matrix rows should be equal");
@@ -464,6 +468,16 @@ LhsT& Apply(LhsT& lhs, const RhsT& rhs, BinaryOp op) {
   std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), lhs.begin(), std::move(op));
   return lhs;
 }
+
+// Fix zeros.
+
+template <detail::MutableMatrixType MatrixT>
+void FixZeros(MatrixT& matrix,
+              UnderlyingScalarT<typename MatrixT::value_type> epsilon = kEpsilon<typename MatrixT::value_type>) {
+  using Scalar = typename MatrixT::value_type;
+  matrix.Apply([epsilon](Scalar value) { return FixZeros(value, epsilon); });
+}
+
 }  // namespace detail
 
 // Unary operators.
@@ -557,6 +571,8 @@ Matrix<detail::CommonValueType<LhsT, RhsT>> operator*(const LhsT& lhs, const Rhs
       }
     }
   }
+
+  // detail::FixZeros(result); // Use to compare convergence
 
   return result;
 }
@@ -652,14 +668,14 @@ detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(cons
   for (auto value : vector) {
     result += std::norm(value);
   }
-
+  std::cout << std::sqrt(result) << std::endl;
   return std::sqrt(result);
 }
 
 template <detail::MutableMatrixType VectorT>
 void NormalizeVector(VectorT& vector) {
-  using Scalar           = typename VectorT::value_type;
-  
+  using Scalar = typename VectorT::value_type;
+
   assert((vector.Cols() == 1 || vector.Rows() == 1) && "Matrix should be a vector");
 
   auto norm = EuclideanVectorNorm(vector);
@@ -670,7 +686,21 @@ void NormalizeVector(VectorT& vector) {
   vector.Apply([norm](Scalar value) { return value / norm; });
 }
 
+// Copy functions.
+
+// We need to use it to change only submatrix.
+// Probably it should be in operator= of MatrixView, but it is used for copying pointers.
+template <detail::MatrixType MatrixFromT, detail::MutableMatrixType MatrixToT>
+void CopyMatrix(const MatrixFromT& from, MatrixToT& to) {
+  assert(from.Rows() == to.Rows() && "Matrix rows should be equal");
+  assert(from.Cols() == to.Cols() && "Matrix cols should be equal");
+
+  std::copy(from.cbegin(), from.cend(), to.begin());
+}
+
 namespace detail {
+
+// Casts matrix to underlying scalar type.
 
 // WARNING: This function returns copy of matrix with omitting imaginary part.
 // Returns copy on matrix with initially floating point type.
