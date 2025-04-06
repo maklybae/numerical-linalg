@@ -34,6 +34,16 @@ bool ApproxZero(T val, UnderlyingScalarT<T> epsilon = kEpsilon<UnderlyingScalarT
   return ApproxEqual(val, T{0}, epsilon);
 }
 
+template <std::floating_point T>
+T FixZeros(T val, T epsilon = kEpsilon<T>) {
+  return ApproxZero(val, epsilon) ? T{0} : val;
+}
+
+template <std::floating_point T>
+std::complex<T> FixZeros(std::complex<T> val, T epsilon = kEpsilon<T>) {
+  return {FixZeros(val.real(), epsilon), FixZeros(val.imag(), epsilon)};
+}
+
 template <FloatingOrComplexType T>
 T Sign(T val) {
   using ReturnType = UnderlyingScalarT<T>;
