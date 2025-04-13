@@ -17,7 +17,6 @@ struct EigenDecompositionResult {
 // Use QR algorithm to find eigenvalues and eigenvectors of a symmetric matrix
 // such that A = Q * D * Q^T, where Q is orthogonal (unitray) (because A is symmetric)
 // and D is diagonal matrix of eigenvalues.
-// For non-symmetric matrices, use GetEigenvalues().
 // TODO: add shift function
 template <detail::MatrixType MatrixT>
 EigenDecompositionResult<typename MatrixT::value_type> SymEigenDecomposition(const MatrixT& matrix,

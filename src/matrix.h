@@ -5,7 +5,6 @@
 #include <cassert>
 #include <concepts>
 #include <initializer_list>
-#include <iostream>
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -282,21 +281,6 @@ class Matrix {
   }
   // NOLINTEND(readability-identifier-naming)
 
-  // Comparison operators.
-
-  // friend bool operator==(const Matrix& lhs, const Matrix& rhs) {
-  //   if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
-  //     return false;
-  //   }
-
-  //   return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-  //                     [](Scalar a, Scalar b) { return detail::ApproxEqual(a, b); });
-  // }
-
-  // friend bool operator!=(const Matrix& lhs, const Matrix& rhs) {
-  //   return !(lhs == rhs);
-  // }
-
   // Functionals.
 
   template <typename UnaryOp>
@@ -351,11 +335,11 @@ class Matrix {
     return identity;
   }
 
-  static Matrix Zero(size_type rows, size_type cols) {
+  static Matrix Zero(ERows rows, ECols cols) {
     return Matrix(rows, cols);
   }
 
-  static Matrix SingleEntry(size_type rows, size_type cols, Index unit_row, Index unit_col) {
+  static Matrix SingleEntry(ERows rows, ECols cols, ERow unit_row, ECol unit_col) {
     Matrix unit(rows, cols);
     unit(unit_row, unit_col) = 1;
     return unit;
@@ -668,7 +652,7 @@ detail::UnderlyingScalarT<typename VectorT::value_type> EuclideanVectorNorm(cons
   for (auto value : vector) {
     result += std::norm(value);
   }
-  std::cout << std::sqrt(result) << std::endl;
+
   return std::sqrt(result);
 }
 
@@ -714,7 +698,8 @@ Matrix<UnderlyingScalarT<typename MatrixT::value_type>> CastToUnderlyingScalarMa
   using Scalar = UnderlyingScalarT<typename MatrixT::value_type>;
 
   Matrix<Scalar> result(ERows{matrix.Rows()}, ECols{matrix.Cols()});
-  result.Apply([](Scalar value) { return value.real(); });
+  std::transform(matrix.cbegin(), matrix.cend(), result.begin(),
+                 [](std::complex<Scalar> value) { return std::abs(value); });
   return result;
 }
 

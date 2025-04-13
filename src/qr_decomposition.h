@@ -57,7 +57,7 @@ QRDecompositionResult<typename MatrixT::value_type> GivensQRDecomposition(const 
 
   for (Index j = 0; j < std::min(matrix.Rows(), matrix.Cols()); ++j) {
     for (Index i = matrix.Rows() - 1; i > j; --i) {
-      auto params = GetZeroingFirstGivensRotationParams(r(i - 1, j), r(i, j));
+      auto params = GetZeroingGivensRotationParams(r(i - 1, j), r(i, j));
       ApplyGivensRotationLeft(r, params, i - 1, i);
       ApplyGivensRotationLeft(q, params, i - 1, i);
     }

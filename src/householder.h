@@ -32,7 +32,7 @@ void ApplyHouseholderRight(MatrixT& matrix, const VectorT& vector) {
 
   assert(matrix.Cols() == vector.Rows() && "Matrix and vector should have the same number of columns");
 
-  matrix -= (matrix * vector) * (Scalar{2} * Conjugated(vector));
+  matrix -= (matrix * Transposed(Conjugated(vector)) * (Scalar{2} * Transposed(vector)));
 }
 
 }  // namespace linalg

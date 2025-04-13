@@ -19,7 +19,7 @@ struct GivensRotationParams {
 // We will use Givens rotations more with real numbers, since output of our reduction to tridiagonal form, after
 // postprocessing, yields a real-valued tridiagonal symmatric matrix.
 template <detail::FloatingOrComplexType Scalar>
-GivensRotationParams<Scalar> GetZeroingFirstGivensRotationParams(Scalar a, Scalar b) {
+GivensRotationParams<Scalar> GetZeroingGivensRotationParams(Scalar a, Scalar b) {
   auto sqrt_norm = std::sqrt(std::norm(a) + std::norm(b));
   if (detail::ApproxZero(sqrt_norm)) {
     return {Scalar{1}, Scalar{0}};

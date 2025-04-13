@@ -279,6 +279,17 @@ class BaseMatrixView {
     return *this;
   }
 
+  template <MutableMatrixType OtherMatrixT>
+  void SwapElements(OtherMatrixT& other) const
+    requires(!kIsConst)
+  {
+    assert(IsValidMatrixView() && "Matrix view should not be empty");
+    assert(Rows() == other.Rows() && "Matrix rows should be equal");
+    assert(Cols() == other.Cols() && "Matrix cols should be equal");
+
+    std::swap_ranges(begin(), end(), other.begin());
+  }
+
  private:
   bool IsValidMatrixView() const {
     return ptr_ != nullptr && Rows() > 0 && Cols() > 0;

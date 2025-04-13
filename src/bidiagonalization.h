@@ -24,7 +24,7 @@ BidiagonalizationResult<typename MatrixT::value_type> GetBidiagonalization(const
 
   Matrix<Scalar> ut        = Matrix<Scalar>::Identity(matrix.Rows());
   Matrix<Scalar> v         = Matrix<Scalar>::Identity(matrix.Cols());
-  Matrix<Scalar> b_noncast = matrix;
+  Matrix<Scalar> b_noncast = Matrix<Scalar>{matrix};
 
   for (Index i = 0; i < std::min(b_noncast.Rows(), b_noncast.Cols()); ++i) {
     // Column reduction (same as QR decomposition)
@@ -50,8 +50,8 @@ BidiagonalizationResult<typename MatrixT::value_type> GetBidiagonalization(const
       }
     }
 
-    // Row reduction only if not the last two columns
-    if (i < b_noncast.Cols() - 2) {
+    // Row reduction only if not the last column
+    if (i < b_noncast.Cols() - 1) {
       auto reflect_rowvector            = Matrix<Scalar>{b_noncast.Submatrix(
           SubmatrixRange::FromBeginSize(ERowBegin{i}, ERows{1}, EColBegin{i + 1}, ECols{b_noncast.Cols() - i - 1}))};
       auto reflect_rowvector_transposed = Transposed(reflect_rowvector);

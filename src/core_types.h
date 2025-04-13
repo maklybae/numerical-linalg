@@ -27,6 +27,8 @@ using Difference = std::int64_t;
 // Strongly typed aliases
 enum ERows : Size {};
 enum ECols : Size {};
+enum ERow : Index {};
+enum ECol : Index {};
 enum ERowBegin : Index {};
 enum ERowEnd : Index {};
 enum EColBegin : Index {};
