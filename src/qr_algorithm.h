@@ -1,10 +1,12 @@
 #ifndef QR_ALGORITHM_H
 #define QR_ALGORITHM_H
 
+#include "classification.h"
 #include "core_types.h"
 #include "matrix.h"
 #include "matrix_types.h"
 #include "scalar_types.h"
+#include "shifts.h"
 
 namespace linalg {
 
@@ -21,22 +23,29 @@ struct EigenDecompositionResult {
 template <detail::MatrixType MatrixT>
 EigenDecompositionResult<typename MatrixT::value_type> SymEigenDecomposition(const MatrixT& matrix,
                                                                              Size it_per_vec = 100) {
-  // TODO: square matrix assert
-  // TODO: symmetric (hermitian) matrix assert (include square matrix assert)
 
-  auto [q, d] = GetHeisenbergForm(matrix);  // q = Q_1 * ... * Q_n
+  assert(IsHermitian(matrix) && "Matrix should be symmetric or hermitian");
+
+  auto [q, d] = GetHessenbergForm(matrix);  // q = Q_1 * ... * Q_n
   for (Size i = 0; i < it_per_vec * matrix.Cols(); ++i) {
-    // TODO: calculate shift
 
-    // TODO:
-    // auto qr = QRDecomposition(h - shift_matrix);
-    // h = qr.r * qr.q + shift_matrix;
+    if constexpr (detail::kIsComplexV<typename MatrixT::value_type>) {
+      if (IsUpperTriangular(d)) {
+        break;
+      }
+    } else {
+      if (IsDiagonal(d)) {
+        break;
+      }
+    }
 
     auto qr = QRDecomposition(d);
     d       = qr.r * qr.q;
     q *= qr.q;
   }
 
+  detail::FixZeros(q);
+  detail::FixZeros(d);
   return {std::move(q), std::move(d)};
 }
 

@@ -179,7 +179,7 @@ void FixOrder(SVDResult<Scalar>& svd_res) {
 template <detail::MatrixType MatrixT>
 SVDResult<typename MatrixT::value_type> SVD(const MatrixT& matrix, Size it_per_vec = 1000) {
   if (matrix.Rows() < matrix.Cols()) {
-    auto res = SVD(Transposed(matrix), it_per_vec);
+    auto res = SVD(Conjugated(matrix), it_per_vec);
 
     return {Matrix{Conjugated(res.vt)}, std::move(res.s), Matrix{Conjugated(res.u)}};
   }

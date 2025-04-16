@@ -1,5 +1,3 @@
-#include "../src/iterators.h"
-
 #include <gtest/gtest.h>
 
 #include <complex>
@@ -7,9 +5,9 @@
 #include <iterator>
 #include <vector>
 
-#include "linalg.h"
+#include "test_env.h"  // IWYU pragma: keep
 
-namespace {
+namespace linalg::test {
 
 using linalg::ConstMatrixView;
 using linalg::Matrix;
@@ -174,7 +172,17 @@ TEST(MatrixViewIterator, FromBeginSizeConstReverseColWise) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST(MatrixView, ImplicitConstCtor) {
+TEST(MatrixViewCtors, DefaultCtor) {}
+
+TEST(MatrixViewCtors, CopyCtor) {}
+
+TEST(MatrixViewCtors, ImplicitCtorFromMatrix) {}
+
+TEST(MatrixViewCtors, SubmatrixRangeWithMatrixCtor) {}
+
+TEST(MatrixViewCtors, SubmatrixRangeWithMatrixViewCtor) {}
+
+TEST(MatrixViewCtors, ImplicitConstCtor) {
   Matrix<double> matrix{{1, 2, 3, 4, 5},      {6, 7, 8, 9, 10},     {11, 12, 13, 14, 15},
                         {16, 17, 18, 19, 20}, {21, 22, 23, 24, 25}, {26, 27, 28, 29, 30}};
   MatrixView<double> view(matrix, SubmatrixRange::FromBeginEnd(linalg::ERowBegin{1}, linalg::ERowEnd{3},
@@ -234,4 +242,4 @@ TEST(MatrixViewState, TransposeReverseIterators) {
   EXPECT_EQ(actual, expected);
 }
 
-}  // namespace
+}  // namespace linalg::test

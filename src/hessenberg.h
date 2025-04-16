@@ -1,23 +1,26 @@
 #ifndef HESSENBERG_H
 #define HESSENBERG_H
 
+#include "classification.h"
 #include "householder.h"
 #include "matrix.h"
 #include "matrix_types.h"
+#include "scalar_utils.h"
 
 namespace linalg {
 
 // Q*_n * ... * Q*_1 * A * Q_1 * ... * Q_n = H
+template <detail::FloatingOrComplexType Scalar>
 struct HessenbergFormResult {
-  Matrix<long double> q;  // Unitary matrix (Q_1 * ... * Q_n)
-  Matrix<long double> h;  // Hessenberg matrix
+  Matrix<Scalar> q;  // Unitary matrix (Q_1 * ... * Q_n)
+  Matrix<Scalar> h;  // Hessenberg matrix
 };
 
 template <detail::MatrixType MatrixT>
-HessenbergFormResult GetHeisenbergForm(const MatrixT& matrix) {
+HessenbergFormResult<typename MatrixT::value_type> GetHessenbergForm(const MatrixT& matrix) {
   using Scalar = typename MatrixT::value_type;
 
-  // TODO: square matrix assert
+  assert(IsSquare(matrix) && "Matrix should be square size");
 
   auto q = Matrix<Scalar>::Identity(matrix.Rows());
   auto h = Matrix<Scalar>{matrix};
@@ -41,10 +44,12 @@ HessenbergFormResult GetHeisenbergForm(const MatrixT& matrix) {
 
     auto h_right_submatrix =
         h.Submatrix(SubmatrixRange::FromBeginEnd(ERowBegin{0}, ERowEnd{q.Rows()}, EColBegin{i + 1}, EColEnd{q.Cols()}));
-    ApplyHouseholderRight(h_right_submatrix, reflect_vector);
+    ApplyHouseholderRight(h_right_submatrix, Transposed(Conjugated(reflect_vector)));
   }
 
   q = Matrix<Scalar>{Conjugated(q)};  // such operator= because Conjugated can be MatrixView or Matrix
+  detail::FixZeros(q);
+  detail::FixZeros(h);
 
   return HessenbergFormResult{std::move(q), std::move(h)};
 }

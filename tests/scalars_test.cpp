@@ -3,9 +3,9 @@
 #include <complex>
 #include <type_traits>
 
-#include "linalg.h"
+#include "test_env.h"  // IWYU pragma: keep
 
-namespace {
+namespace linalg::test {
 
 TEST(ScalarTypesConcepts, StaticAssertions) {
   static_assert(linalg::detail::FloatingOrComplexType<const double>);
@@ -56,4 +56,4 @@ TEST(ComplexOperations, ImplicitCast) {
       std::is_same_v<std::common_type_t<const double, std::complex<const double>>, std::complex<const double>>);
 }
 
-}  // namespace
+}  // namespace linalg::test

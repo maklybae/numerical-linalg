@@ -19,10 +19,13 @@ MatrixT::value_type GetWilkinsonShift(const MatrixT& matrix) {
 
   auto square_submatrix = matrix.Submatrix(
       SubmatrixRange::FromBeginSize(ERowBegin{matrix.Rows() - 2}, ERows{2}, EColBegin{matrix.Cols() - 2}, ECols{2}));
-  auto delta = (square_submatrix(0, 0) - square_submatrix(1, 1)) / Scalar{2};
-  return square_submatrix(1, 1) -
-         Sign(delta) * square_submatrix(0, 1) * square_submatrix(0, 1) /
-             (std::abs(delta) + std::sqrt(delta * delta + square_submatrix(0, 1) * square_submatrix(0, 1)));
+  auto delta  = (square_submatrix(0, 0) - square_submatrix(1, 1)) / Scalar{2};
+  auto divide = std::abs(delta) + std::sqrt(delta * delta + square_submatrix(0, 1) * square_submatrix(0, 1));
+  if (ApproxZero(divide)) {
+    return Scalar{0};
+  }
+
+  return square_submatrix(1, 1) - Sign(delta) * square_submatrix(0, 1) * square_submatrix(0, 1) / divide;
 }
 
 }  // namespace detail

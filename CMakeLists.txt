@@ -22,6 +22,7 @@ else()
     add_compile_options(-Wenum-compare -Wfloat-equal -Wnon-virtual-dtor)
     add_compile_options(-Wold-style-cast -Woverloaded-virtual -Wredundant-decls)
     add_compile_options(-Wsign-conversion -Wsign-promo)
+    add_compile_options(-g)
 
     if (UNIX)
         add_compile_options(-fsanitize=address)

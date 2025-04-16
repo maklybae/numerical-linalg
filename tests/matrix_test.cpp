@@ -1,11 +1,15 @@
+#include "../src/matrix.h"
+
 #include <gtest/gtest.h>
 
 #include <complex>
+#include <iomanip>
+#include <ios>
 #include <type_traits>
 
-#include "linalg.h"
+#include "test_env.h"  // IWYU pragma: keep
 
-namespace {
+namespace linalg::test {
 
 using linalg::Matrix;
 using linalg::Size;
@@ -14,7 +18,6 @@ TEST(MatrixCtors, DefaultCtor) {
   Matrix<double> matrix;
   EXPECT_EQ(matrix.Rows(), 0);
   EXPECT_EQ(matrix.Cols(), 0);
-  // EXPECT_TRUE(matrix.empty());
 }
 
 TEST(MatrixCtors, CopyCtor_EmptyMatrix) {
@@ -22,7 +25,6 @@ TEST(MatrixCtors, CopyCtor_EmptyMatrix) {
   Matrix<double> copy(matrix);
   EXPECT_EQ(copy.Rows(), 0);
   EXPECT_EQ(copy.Cols(), 0);
-  // EXPECT_TRUE(copy.empty());
 }
 
 TEST(MatrixCtors, MoveCtor_EmptyMatrix) {
@@ -30,21 +32,19 @@ TEST(MatrixCtors, MoveCtor_EmptyMatrix) {
   Matrix moved(std::move(matrix));
   EXPECT_EQ(moved.Rows(), 0);
   EXPECT_EQ(moved.Cols(), 0);
-  // EXPECT_TRUE(moved.empty());
 }
 
 TEST(MatrixCtors, SizeCtor) {
   Matrix<double> matrix(linalg::ERows{2}, linalg::ECols{3});
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
 }
 
 TEST(MatrixCtors, InitializerListCtor) {
   Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}};
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
@@ -58,7 +58,7 @@ TEST(MatrixCtors, CopyConstructor) {
   Matrix copy(matrix);
   EXPECT_EQ(copy.Rows(), 2);
   EXPECT_EQ(copy.Cols(), 3);
-  // EXPECT_FALSE(copy.empty());
+
   EXPECT_DOUBLE_EQ(copy(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(copy(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(copy(0, 2), 3.0);
@@ -69,7 +69,7 @@ TEST(MatrixCtors, CopyConstructor) {
   // No side effects on the original matrix.
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
@@ -83,7 +83,7 @@ TEST(MatrixCtors, MoveCtor) {
   Matrix moved(std::move(matrix));
   EXPECT_EQ(moved.Rows(), 2);
   EXPECT_EQ(moved.Cols(), 3);
-  // EXPECT_FALSE(moved.empty());
+
   EXPECT_DOUBLE_EQ(moved(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(moved(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(moved(0, 2), 3.0);
@@ -94,7 +94,6 @@ TEST(MatrixCtors, MoveCtor) {
   // Data from matrix should be moved.
   EXPECT_EQ(matrix.Rows(), 0);
   EXPECT_EQ(matrix.Cols(), 0);
-  // EXPECT_TRUE(matrix.empty());
 }
 
 TEST(MatrixAssignment, CopyAssignment) {
@@ -103,7 +102,7 @@ TEST(MatrixAssignment, CopyAssignment) {
   copy = matrix;
   EXPECT_EQ(copy.Rows(), 2);
   EXPECT_EQ(copy.Cols(), 3);
-  // EXPECT_FALSE(copy.empty());
+
   EXPECT_DOUBLE_EQ(copy(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(copy(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(copy(0, 2), 3.0);
@@ -114,7 +113,7 @@ TEST(MatrixAssignment, CopyAssignment) {
   // No side effects on the original matrix.
   EXPECT_EQ(matrix.Rows(), 2);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_DOUBLE_EQ(matrix(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(matrix(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(matrix(0, 2), 3.0);
@@ -129,7 +128,7 @@ TEST(MatrixAssignment, MoveAssignment) {
   moved = std::move(matrix);
   EXPECT_EQ(moved.Rows(), 2);
   EXPECT_EQ(moved.Cols(), 3);
-  // EXPECT_FALSE(moved.empty());
+
   EXPECT_DOUBLE_EQ(moved(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(moved(0, 1), 2.0);
   EXPECT_DOUBLE_EQ(moved(0, 2), 3.0);
@@ -140,14 +139,13 @@ TEST(MatrixAssignment, MoveAssignment) {
   // Data from matrix should be moved.
   EXPECT_EQ(matrix.Rows(), 0);
   EXPECT_EQ(matrix.Cols(), 0);
-  // EXPECT_TRUE(matrix.empty());
 }
 
 TEST(MatrixStaticCreate, Identity) {
   Matrix<double> identity = Matrix<double>::Identity(3);
   EXPECT_EQ(identity.Rows(), 3);
   EXPECT_EQ(identity.Cols(), 3);
-  // EXPECT_FALSE(identity.empty());
+
   for (Size i = 0; i < 3; ++i) {
     for (Size j = 0; j < 3; ++j) {
       if (i == j) {
@@ -160,10 +158,10 @@ TEST(MatrixStaticCreate, Identity) {
 }
 
 TEST(MatrixStaticCreate, Zero) {
-  Matrix<double> zero = Matrix<double>::Zero(2, 3);
+  Matrix<double> zero = Matrix<double>::Zero(linalg::ERows{2}, linalg::ECols{3});
   EXPECT_EQ(zero.Rows(), 2);
   EXPECT_EQ(zero.Cols(), 3);
-  // EXPECT_FALSE(zero.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(zero(i, j), 0.0);
@@ -172,10 +170,11 @@ TEST(MatrixStaticCreate, Zero) {
 }
 
 TEST(MatrixStaticCreate, Unit) {
-  Matrix<double> unit = Matrix<double>::SingleEntry(2, 3, 1, 2);
+  Matrix<double> unit =
+      Matrix<double>::SingleEntry(linalg::ERows{2}, linalg::ECols{3}, linalg::ERow{1}, linalg::ECol{2});
   EXPECT_EQ(unit.Rows(), 2);
   EXPECT_EQ(unit.Cols(), 3);
-  // EXPECT_FALSE(unit.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       if (i == 1 && j == 2) {
@@ -191,7 +190,7 @@ TEST(MatrixStaticCreate, DiagonalScalar) {
   Matrix<double> diagonal = Matrix<double>::ScalarMatrix(3, 2.0);
   EXPECT_EQ(diagonal.Rows(), 3);
   EXPECT_EQ(diagonal.Cols(), 3);
-  // EXPECT_FALSE(diagonal.empty());
+
   for (Size i = 0; i < 3; ++i) {
     for (Size j = 0; j < 3; ++j) {
       if (i == j) {
@@ -207,7 +206,7 @@ TEST(MatrixStaticCreate, DiagonalList) {
   Matrix<double> diagonal = Matrix<double>::Diagonal({1.0, 2.0, 3.0});
   EXPECT_EQ(diagonal.Rows(), 3);
   EXPECT_EQ(diagonal.Cols(), 3);
-  // EXPECT_FALSE(diagonal.empty());
+
   for (Size i = 0; i < 3; ++i) {
     for (Size j = 0; j < 3; ++j) {
       if (i == j) {
@@ -224,7 +223,7 @@ TEST(MatrixStaticCreate, DiagonalIterator) {
   Matrix<double> diagonal = Matrix<double>::Diagonal(values.begin(), values.end());
   EXPECT_EQ(diagonal.Rows(), 3);
   EXPECT_EQ(diagonal.Cols(), 3);
-  // EXPECT_FALSE(diagonal.empty());
+
   for (Size i = 0; i < 3; ++i) {
     for (Size j = 0; j < 3; ++j) {
       if (i == j) {
@@ -239,63 +238,6 @@ TEST(MatrixStaticCreate, DiagonalIterator) {
 TEST(Debug, Debug) {
   EXPECT_EQ(1, 1);
 }
-
-// // Copied from https://stackoverflow.com/a/60491447/22523445
-// // based on https://en.cppreference.com/w/cpp/named_req/Container
-// // Using only for testing purposes.
-// template <class ContainerType>
-// concept Container = requires(ContainerType a, const ContainerType b) {
-//   requires std::regular<ContainerType>;
-//   requires std::swappable<ContainerType>;
-//   requires std::destructible<typename ContainerType::value_type>;
-//   requires std::same_as<typename ContainerType::reference, typename ContainerType::value_type &>;
-//   requires std::same_as<typename ContainerType::const_reference, const typename ContainerType::value_type &>;
-//   requires std::forward_iterator<typename ContainerType::iterator>;
-//   requires std::forward_iterator<typename ContainerType::const_iterator>;
-//   requires std::signed_integral<typename ContainerType::difference_type>;
-//   requires std::same_as<typename ContainerType::difference_type,
-//                         typename std::iterator_traits<typename ContainerType::iterator>::difference_type>;
-//   requires std::same_as<typename ContainerType::difference_type,
-//                         typename std::iterator_traits<typename ContainerType::const_iterator>::difference_type>;
-//   { a.begin() } -> std::same_as<typename ContainerType::iterator>;
-//   { a.end() } -> std::same_as<typename ContainerType::iterator>;
-//   { b.begin() } -> std::same_as<typename ContainerType::const_iterator>;
-//   { b.end() } -> std::same_as<typename ContainerType::const_iterator>;
-//   { a.cbegin() } -> std::same_as<typename ContainerType::const_iterator>;
-//   { a.cend() } -> std::same_as<typename ContainerType::const_iterator>;
-//   { a.size() } -> std::same_as<typename ContainerType::size_type>;
-//   { a.max_size() } -> std::same_as<typename ContainerType::size_type>;
-//   { a.empty() } -> std::same_as<bool>;
-// };
-
-// template <typename ContainerType>
-// concept ReversibleContainer = Container<ContainerType> && requires(ContainerType a) {
-//   requires std::same_as<typename ContainerType::reverse_iterator,
-//                         std::reverse_iterator<typename ContainerType::iterator>>;
-//   requires std::same_as<typename ContainerType::const_reverse_iterator,
-//                         std::reverse_iterator<typename ContainerType::const_iterator>>;
-//   { a.rbegin() } -> std::same_as<typename ContainerType::reverse_iterator>;
-//   { a.rend() } -> std::same_as<typename ContainerType::reverse_iterator>;
-//   { a.crbegin() } -> std::same_as<typename ContainerType::const_reverse_iterator>;
-//   { a.crend() } -> std::same_as<typename ContainerType::const_reverse_iterator>;
-// };
-
-// template <typename ContainerType>
-// concept ContiguousContainer = Container<ContainerType> && requires(ContainerType a) {
-//   requires std::contiguous_iterator<typename ContainerType::iterator>;
-//   requires std::contiguous_iterator<typename ContainerType::const_iterator>;
-// };
-
-// TEST(MatrixStaticAsserts, ContainerConcepts) {
-//   static_assert(Container<Matrix<double>>);
-//   static_assert(Container<Matrix<std::complex<double>>>);
-
-//   static_assert(ReversibleContainer<Matrix<double>>);
-//   static_assert(ReversibleContainer<Matrix<std::complex<double>>>);
-
-//   static_assert(ContiguousContainer<Matrix<double>>);
-//   static_assert(ContiguousContainer<Matrix<std::complex<double>>>);
-// }
 
 TEST(MatrixCompare, ExactEqual) {
   Matrix<double> lhs{{1, 2, 3}, {4, 5, 6}};
@@ -329,7 +271,7 @@ TEST(MatrixArithmetic, Negate) {
   Matrix<double> negated = -matrix;
   EXPECT_EQ(negated.Rows(), 2);
   EXPECT_EQ(negated.Cols(), 3);
-  // EXPECT_FALSE(negated.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(negated(i, j), -matrix(i, j));
@@ -343,7 +285,7 @@ TEST(MatrixArithmetic, Addition) {
   Matrix<double> sum = lhs + rhs;
   EXPECT_EQ(sum.Rows(), 2);
   EXPECT_EQ(sum.Cols(), 3);
-  // EXPECT_FALSE(sum.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(sum(i, j), lhs(i, j) + rhs(i, j));
@@ -357,7 +299,7 @@ TEST(MatrixArithmetic, InPlaceSubtraction) {
   Matrix<double> diff = lhs - rhs;
   EXPECT_EQ(diff.Rows(), 2);
   EXPECT_EQ(diff.Cols(), 3);
-  // EXPECT_FALSE(diff.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(diff(i, j), lhs(i, j) - rhs(i, j));
@@ -373,7 +315,7 @@ TEST(MatrixArithmetic, InPlaceMultiplication) {
 
   EXPECT_EQ(lhs.Rows(), 2);
   EXPECT_EQ(lhs.Cols(), 2);
-  // EXPECT_FALSE(lhs.empty());
+
   EXPECT_EQ(lhs, expected);
 }
 
@@ -383,7 +325,7 @@ TEST(MatrixArithmetic, OutOfPlaceAddition) {
   Matrix<double> sum = lhs + rhs;
   EXPECT_EQ(sum.Rows(), 2);
   EXPECT_EQ(sum.Cols(), 3);
-  // EXPECT_FALSE(sum.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(sum(i, j), lhs(i, j) + rhs(i, j));
@@ -397,7 +339,7 @@ TEST(MatrixArithmetic, OutOfPlaceSubtraction) {
   Matrix<double> diff = lhs - rhs;
   EXPECT_EQ(diff.Rows(), 2);
   EXPECT_EQ(diff.Cols(), 3);
-  // EXPECT_FALSE(diff.empty());
+
   for (Size i = 0; i < 2; ++i) {
     for (Size j = 0; j < 3; ++j) {
       EXPECT_DOUBLE_EQ(diff(i, j), lhs(i, j) - rhs(i, j));
@@ -413,7 +355,7 @@ TEST(MatrixArithmetic, OutOfPlaceMultiplication) {
 
   EXPECT_EQ(product.Rows(), 2);
   EXPECT_EQ(product.Cols(), 2);
-  // EXPECT_FALSE(product.empty());
+
   EXPECT_EQ(product, expected);
 }
 
@@ -424,7 +366,7 @@ TEST(MatrixArithmetic, InPlaceScalarAddition) {
 
   EXPECT_EQ(matrix.Rows(), 3);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_EQ(matrix, expected);
 }
 
@@ -435,7 +377,7 @@ TEST(MatrixArithmetic, InPlaceScalarSubtraction) {
 
   EXPECT_EQ(matrix.Rows(), 3);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_EQ(matrix, expected);
 }
 
@@ -446,7 +388,7 @@ TEST(MatrixArithmetic, InPlaceScalarMultiplication) {
 
   EXPECT_EQ(matrix.Rows(), 3);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_EQ(matrix, expected);
 }
 
@@ -457,7 +399,7 @@ TEST(MatrixArithmetic, InPlaceScalarDivision) {
 
   EXPECT_EQ(matrix.Rows(), 3);
   EXPECT_EQ(matrix.Cols(), 3);
-  // EXPECT_FALSE(matrix.empty());
+
   EXPECT_EQ(matrix, expected);
 }
 
@@ -468,7 +410,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarAddition) {
 
   EXPECT_EQ(sum.Rows(), 3);
   EXPECT_EQ(sum.Cols(), 3);
-  // EXPECT_FALSE(sum.empty());
+
   EXPECT_EQ(sum, expected);
 }
 
@@ -479,7 +421,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarSubtraction) {
 
   EXPECT_EQ(diff.Rows(), 3);
   EXPECT_EQ(diff.Cols(), 3);
-  // EXPECT_FALSE(diff.empty());
+
   EXPECT_EQ(diff, expected);
 }
 
@@ -490,7 +432,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarMultiplication) {
 
   EXPECT_EQ(product.Rows(), 3);
   EXPECT_EQ(product.Cols(), 3);
-  // EXPECT_FALSE(product.empty());
+
   EXPECT_EQ(product, expected);
 }
 
@@ -501,7 +443,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarDivision) {
 
   EXPECT_EQ(quotient.Rows(), 3);
   EXPECT_EQ(quotient.Cols(), 3);
-  // EXPECT_FALSE(quotient.empty());
+
   EXPECT_EQ(quotient, expected);
 }
 
@@ -512,7 +454,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarDifferentScalarAddition) {
 
   EXPECT_EQ(sum.Rows(), 3);
   EXPECT_EQ(sum.Cols(), 3);
-  // EXPECT_FALSE(sum.empty());
+
   EXPECT_EQ(sum, expected);
 }
 
@@ -523,7 +465,7 @@ TEST(MatrixArithmetic, OutOfPlaceScalarDifferentScalarDivision) {
 
   EXPECT_EQ(quotient.Rows(), 3);
   EXPECT_EQ(quotient.Cols(), 3);
-  // EXPECT_FALSE(quotient.empty());
+
   EXPECT_EQ(quotient, expected);
 }
 
@@ -733,4 +675,100 @@ TEST(MatrixOperations, FPEuclideanNormView) {
   EXPECT_DOUBLE_EQ(norm, std::sqrt(14.0));
 }
 
-}  // namespace
+TEST(MatrixSerialization, Floating) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}};
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(1) << matrix;
+  std::string expected = "1.0 2.0 3.0\n4.0 5.0 6.0";
+  EXPECT_EQ(oss.str(), expected);
+}
+
+TEST(MatrixSerialization, Complex) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}};
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(1) << matrix;
+  std::string expected = "(1.0,1.0) (2.0,2.0) (3.0,3.0)\n(4.0,4.0) (5.0,5.0) (6.0,6.0)";
+  EXPECT_EQ(oss.str(), expected);
+}
+
+TEST(MatrixSerialization, FloatingView) {
+  Matrix<double> matrix{{1, 2, 3}, {4, 5, 6}};
+  auto view = linalg::MatrixView<double>(matrix);
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(1) << view;
+  std::string expected = "1.0 2.0 3.0\n4.0 5.0 6.0";
+  EXPECT_EQ(oss.str(), expected);
+}
+
+TEST(MatrixSerialization, ComplexView) {
+  Matrix<std::complex<double>> matrix{{{1, 1}, {2, 2}, {3, 3}}, {{4, 4}, {5, 5}, {6, 6}}};
+  auto view = linalg::MatrixView<std::complex<double>>(matrix);
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(1) << view;
+  std::string expected = "(1.0,1.0) (2.0,2.0) (3.0,3.0)\n(4.0,4.0) (5.0,5.0) (6.0,6.0)";
+  EXPECT_EQ(oss.str(), expected);
+}
+
+TEST(MatrixDeserialization, Floating) {
+  Matrix<double> matrix(linalg::ERows{2}, linalg::ECols{3});
+  std::istringstream iss("1.0 2.0 3.0\n4.0 5.0 6.0");
+  iss >> matrix;
+  EXPECT_EQ(matrix.Rows(), 2);
+  EXPECT_EQ(matrix.Cols(), 3);
+
+  std::vector expected{
+      1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
+  };
+  std::vector<double> actual(matrix.begin(), matrix.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixDeserialization, Complex) {
+  Matrix<std::complex<double>> matrix(linalg::ERows{2}, linalg::ECols{3});
+  std::istringstream iss("(1.0,1.0) (2.0,2.0) (3.0,3.0)\n(4.0,4.0) (5.0,5.0) (6.0,6.0)");
+  iss >> matrix;
+  EXPECT_EQ(matrix.Rows(), 2);
+  EXPECT_EQ(matrix.Cols(), 3);
+
+  std::vector<std::complex<double>> expected{
+      {1.0, 1.0}, {2.0, 2.0}, {3.0, 3.0}, {4.0, 4.0}, {5.0, 5.0}, {6.0, 6.0},
+  };
+  std::vector<std::complex<double>> actual(matrix.begin(), matrix.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixDeserialization, FloatingView) {
+  Matrix<double> matrix(linalg::ERows{2}, linalg::ECols{3});
+  auto view = linalg::MatrixView<double>(matrix);
+  std::istringstream iss("1.0 2.0 3.0\n4.0 5.0 6.0");
+  iss >> view;
+  EXPECT_EQ(matrix.Rows(), 2);
+  EXPECT_EQ(matrix.Cols(), 3);
+
+  std::vector expected{
+      1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
+  };
+  std::vector<double> actual(matrix.begin(), matrix.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(MatrixDeserialization, ComplexView) {
+  Matrix<std::complex<double>> matrix(linalg::ERows{2}, linalg::ECols{3});
+  auto view = linalg::MatrixView<std::complex<double>>(matrix);
+  std::istringstream iss("(1.0,1.0) (2.0,2.0) (3.0,3.0)\n(4.0,4.0) (5.0,5.0) (6.0,6.0)");
+  iss >> view;
+  EXPECT_EQ(matrix.Rows(), 2);
+  EXPECT_EQ(matrix.Cols(), 3);
+
+  std::vector<std::complex<double>> expected{
+      {1.0, 1.0}, {2.0, 2.0}, {3.0, 3.0}, {4.0, 4.0}, {5.0, 5.0}, {6.0, 6.0},
+  };
+  std::vector<std::complex<double>> actual(matrix.begin(), matrix.end());
+
+  EXPECT_EQ(actual, expected);
+}
+
+}  // namespace linalg::test

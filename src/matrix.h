@@ -440,6 +440,29 @@ class Matrix {
   StorageType data_{};
 };
 
+// Stream operators for Matrix.
+
+template <detail::MatrixType MatrixT>
+std::ostream& operator<<(std::ostream& os, const MatrixT& matrix) {
+  for (Size i = 0; i < matrix.Rows(); ++i) {
+    for (Size j = 0; j < matrix.Cols(); ++j) {
+      os << matrix(i, j) << (j + 1 == matrix.Cols() ? "" : " ");
+    }
+    os << (i + 1 == matrix.Rows() ? "" : "\n");
+  }
+  return os;
+}
+
+template <detail::MutableMatrixType MatrixT>
+std::istream& operator>>(std::istream& is, MatrixT& matrix) {
+  for (Size i = 0; i < matrix.Rows(); ++i) {
+    for (Size j = 0; j < matrix.Cols(); ++j) {
+      is >> matrix(i, j);
+    }
+  }
+  return is;
+}
+
 namespace detail {
 
 // Not public functionals.
@@ -460,6 +483,21 @@ void FixZeros(MatrixT& matrix,
               UnderlyingScalarT<typename MatrixT::value_type> epsilon = kEpsilon<typename MatrixT::value_type>) {
   using Scalar = typename MatrixT::value_type;
   matrix.Apply([epsilon](Scalar value) { return FixZeros(value, epsilon); });
+}
+
+// Compare
+template <detail::MatrixType LhsT, detail::MatrixType RhsT>
+bool ApproxEqual(const LhsT& lhs, const RhsT& rhs,
+                 detail::UnderlyingScalarT<detail::CommonValueType<LhsT, RhsT>> epsilon =
+                     detail::kEpsilon<detail::CommonValueType<LhsT, RhsT>>) {
+  if (lhs.Rows() != rhs.Rows() || lhs.Cols() != rhs.Cols()) {
+    return false;
+  }
+
+  return std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
+                    [epsilon](typename LhsT::value_type a, typename RhsT::value_type b) {
+                      return detail::ApproxEqual(a, b, epsilon);
+                    });
 }
 
 }  // namespace detail
@@ -683,7 +721,6 @@ void CopyMatrix(const MatrixFromT& from, MatrixToT& to) {
 }
 
 namespace detail {
-
 // Casts matrix to underlying scalar type.
 
 // WARNING: This function returns copy of matrix with omitting imaginary part.
